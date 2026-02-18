@@ -110,6 +110,11 @@ namespace CubeGame
             return _buildZone.rect.height;
         }
 
+        public float GetTowerBaseX()
+        {
+            return _model.TowerBase.Value.x;
+        }
+
         /// <summary>
         /// Convert screen position to tower coordinate system
         /// where Y=0 is at the bottom of the container.

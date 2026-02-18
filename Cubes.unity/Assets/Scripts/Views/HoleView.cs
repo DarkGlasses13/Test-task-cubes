@@ -13,6 +13,8 @@ namespace CubeGame
         /// Check if a screen position falls within the oval boundary of the hole.
         /// Uses the standard ellipse equation: (x/a)^2 + (y/b)^2 <= 1
         /// </summary>
+        public RectTransform HoleRect => _holeRect;
+
         public bool IsInsideHole(Vector2 screenPos, Camera cam)
         {
             if (_holeRect == null) return false;

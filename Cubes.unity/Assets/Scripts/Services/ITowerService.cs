@@ -11,9 +11,9 @@ namespace CubeGame
 
         /// <summary>
         /// Place a new cube on the tower. Returns the created CubeData.
-        /// colorIndex is the index into the config's sprite array.
+        /// dropOffsetX — horizontal offset from tower base where the user dropped the cube.
         /// </summary>
-        CubeData PlaceCube(int colorIndex);
+        CubeData PlaceCube(int colorIndex, float dropOffsetX);
 
         /// <summary>
         /// Remove a cube at the given tower index.

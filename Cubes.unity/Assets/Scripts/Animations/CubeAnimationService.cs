@@ -30,6 +30,19 @@ namespace CubeGame
             return seq;
         }
 
+        public Sequence PlaySwallowIntoHole(RectTransform target, Vector2 holeLocalPos, float duration = 0.4f)
+        {
+            target.DOKill();
+            var cg = target.GetComponent<CanvasGroup>();
+            if (cg == null) cg = target.gameObject.AddComponent<CanvasGroup>();
+
+            var seq = DOTween.Sequence();
+            seq.Join(target.DOAnchorPos(holeLocalPos, duration).SetEase(Ease.InQuad));
+            seq.Join(target.DOScale(Vector3.zero, duration).SetEase(Ease.InBack));
+            seq.Join(DOTween.To(() => cg.alpha, a => cg.alpha = a, 0f, duration * 0.8f).SetDelay(duration * 0.2f));
+            return seq;
+        }
+
         public Tween PlayCollapse(RectTransform target, float targetY, float duration = 0.3f)
         {
             target.DOKill();

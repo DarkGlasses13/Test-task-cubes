@@ -88,13 +88,15 @@ namespace CubeGame
                 float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
 
                 _towerService.SetTowerBase(new Vector2(baseX, cubeSize * 0.5f));
-                var data = _towerService.PlaceCube(colorIndex);
+                var data = _towerService.PlaceCube(colorIndex, 0f);
                 _towerView.AddCubeVisual(data);
                 SaveIfEnabled();
             }
             else if (_towerView.IsDropOnTopCube(dropPos, _uiCamera))
             {
-                var data = _towerService.PlaceCube(colorIndex);
+                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
+                float dropOffsetX = towerCoords.x - _towerView.GetTowerBaseX();
+                var data = _towerService.PlaceCube(colorIndex, dropOffsetX);
                 _towerView.AddCubeVisual(data);
                 SaveIfEnabled();
             }
@@ -124,10 +126,12 @@ namespace CubeGame
         public void OnTowerCubeDragEnded(TowerCubeView cube, PointerEventData e)
         {
             int towerIndex = _dragProxy.TowerIndex;
+            Sprite sprite = _dragProxy.CurrentSprite;
             _dragProxy.EndDrag();
 
             if (_holeView.IsInsideHole(e.position, _uiCamera))
             {
+                PlayHoleAnimation(e.position, sprite);
                 _towerService.RemoveCube(towerIndex);
                 _towerView.RemoveCubeVisual(towerIndex);
                 SaveIfEnabled();
@@ -170,6 +174,38 @@ namespace CubeGame
             rt.anchoredPosition = localPoint;
 
             _animService.PlayExplode(rt).OnComplete(() => Destroy(go));
+        }
+
+        private void PlayHoleAnimation(Vector2 screenPos, Sprite sprite)
+        {
+            var go = new GameObject("CubeSwallow");
+            go.transform.SetParent(_canvas.transform, false);
+            go.transform.SetAsLastSibling();
+
+            var rt = go.GetComponent<RectTransform>();
+            if (rt == null) rt = go.AddComponent<RectTransform>();
+
+            var img = go.AddComponent<Image>();
+            go.AddComponent<CanvasGroup>();
+
+            img.sprite = sprite;
+            img.raycastTarget = false;
+            rt.sizeDelta = new Vector2(_config.CubeUISize, _config.CubeUISize);
+
+            var canvasRect = _canvas.transform as RectTransform;
+
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect, screenPos, _uiCamera, out Vector2 dropLocal);
+            rt.anchoredPosition = dropLocal;
+
+            Vector3[] holeCorners = new Vector3[4];
+            _holeView.HoleRect.GetWorldCorners(holeCorners);
+            Vector2 holeCenterWorld = (holeCorners[0] + holeCorners[2]) * 0.5f;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                canvasRect, RectTransformUtility.WorldToScreenPoint(_uiCamera, holeCenterWorld),
+                _uiCamera, out Vector2 holeLocal);
+
+            _animService.PlaySwallowIntoHole(rt, holeLocal).OnComplete(() => Destroy(go));
         }
     }
 }

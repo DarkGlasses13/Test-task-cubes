@@ -25,12 +25,12 @@ namespace CubeGame
             return (_model.Count + 1) * cubeSize <= zoneHeight;
         }
 
-        public CubeData PlaceCube(int colorIndex)
+        public CubeData PlaceCube(int colorIndex, float dropOffsetX)
         {
             float maxOffset = _config.CubeUISize * _config.MaxHorizontalOffsetPercent;
-            float randomOffset = _model.Count == 0 ? 0f : Random.Range(-maxOffset, maxOffset);
+            float clampedOffset = _model.Count == 0 ? 0f : Mathf.Clamp(dropOffsetX, -maxOffset, maxOffset);
 
-            var cubeData = new CubeData(_nextCubeId++, colorIndex, randomOffset);
+            var cubeData = new CubeData(_nextCubeId++, colorIndex, clampedOffset);
             _model.AddCube(cubeData);
             _messageService.ShowMessage(LocalizationKeys.CubePlaced);
             return cubeData;

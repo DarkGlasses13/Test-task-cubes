@@ -16,6 +16,7 @@ namespace CubeGame
         private Camera _camera;
 
         public RectTransform RectTransform => _rectTransform;
+        public Sprite CurrentSprite => _image != null ? _image.sprite : null;
         public int ColorIndex { get; private set; }
         public int TowerIndex { get; private set; } = -1;
         public bool IsTowerCube => TowerIndex >= 0;
