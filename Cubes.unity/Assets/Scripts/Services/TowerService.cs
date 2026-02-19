@@ -36,11 +36,12 @@ namespace CubeGame
             return cubeData;
         }
 
-        public void RemoveCube(int towerIndex)
+        public void RemoveCube(int towerIndex, bool silent = false)
         {
             if (towerIndex < 0 || towerIndex >= _model.Count) return;
             _model.RemoveCubeAt(towerIndex);
-            _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
+            if (!silent)
+                _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
         }
 
         public void SetTowerBase(Vector2 localPosition)

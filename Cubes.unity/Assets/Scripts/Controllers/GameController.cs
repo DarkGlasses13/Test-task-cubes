@@ -22,6 +22,7 @@ namespace CubeGame
         [Inject] private ITowerService _towerService;
         [Inject] private ISaveService _saveService;
         [Inject] private IGameConfig _config;
+        [Inject] private IMessageService _messageService;
         [Inject] private CubeAnimationService _animService;
 
         private Camera _uiCamera;
@@ -118,7 +119,7 @@ namespace CubeGame
             _pickedCubeGO = cube.gameObject;
 
             int towerIndex = cube.TowerIndex;
-            _towerService.RemoveCube(towerIndex);
+            _towerService.RemoveCube(towerIndex, silent: true);
             _towerView.PickUpCubeVisual(towerIndex);
 
             _dragProxy.BeginTowerDrag(
@@ -138,6 +139,7 @@ namespace CubeGame
 
             if (_holeView.IsInsideHole(dropPos, _uiCamera))
             {
+                _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
                 PlayHoleAnimation(dropPos, _pickedSprite);
                 SaveIfEnabled();
             }
@@ -166,13 +168,15 @@ namespace CubeGame
             }
             else
             {
+                _towerService.NotifyMiss();
                 PlayMissAnimation(dropPos, _pickedSprite);
                 SaveIfEnabled();
             }
 
             if (_pickedCubeGO != null)
             {
-                _pickedCubeGO.SetActive(false);
+                var rt = _pickedCubeGO.GetComponent<RectTransform>();
+                if (rt != null) rt.DOKill();
                 Destroy(_pickedCubeGO);
             }
 

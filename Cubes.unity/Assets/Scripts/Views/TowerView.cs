@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using Zenject;
 
@@ -69,6 +70,7 @@ namespace CubeGame
 
             var removed = _cubeViews[towerIndex];
             _cubeViews.RemoveAt(towerIndex);
+            removed.RectTransform.DOKill();
             Destroy(removed.gameObject);
 
             CollapseFrom(towerIndex);
@@ -84,6 +86,7 @@ namespace CubeGame
             if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
 
             var picked = _cubeViews[towerIndex];
+            picked.RectTransform.DOKill();
             picked.SetVisible(false);
             _cubeViews.RemoveAt(towerIndex);
 
@@ -187,7 +190,11 @@ namespace CubeGame
         private void ClearViews()
         {
             foreach (var view in _cubeViews)
-                if (view != null) Destroy(view.gameObject);
+            {
+                if (view == null) continue;
+                view.RectTransform.DOKill();
+                Destroy(view.gameObject);
+            }
             _cubeViews.Clear();
         }
     }

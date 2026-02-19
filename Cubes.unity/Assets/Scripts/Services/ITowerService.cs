@@ -19,7 +19,7 @@ namespace CubeGame
         /// Remove a cube at the given tower index.
         /// Cubes above will shift down.
         /// </summary>
-        void RemoveCube(int towerIndex);
+        void RemoveCube(int towerIndex, bool silent = false);
 
         void SetTowerBase(Vector2 localPosition);
         void NotifyMiss();
