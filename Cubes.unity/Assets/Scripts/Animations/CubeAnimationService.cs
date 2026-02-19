@@ -43,10 +43,14 @@ namespace CubeGame
             return seq;
         }
 
-        public Tween PlayCollapse(RectTransform target, float targetY, float duration = 0.3f)
+        public Sequence PlayCollapse(RectTransform target, float targetY, float bounceHeight = 20f, float duration = 0.45f)
         {
             target.DOKill();
-            return target.DOAnchorPosY(targetY, duration).SetEase(Ease.OutQuad);
+            var seq = DOTween.Sequence();
+            seq.Append(target.DOAnchorPosY(targetY, duration * 0.45f).SetEase(Ease.InQuad));
+            seq.Append(target.DOAnchorPosY(targetY + bounceHeight, duration * 0.2f).SetEase(Ease.OutQuad));
+            seq.Append(target.DOAnchorPosY(targetY, duration * 0.35f).SetEase(Ease.OutBounce));
+            return seq;
         }
 
         public Sequence PlayDragPickup(RectTransform target)
