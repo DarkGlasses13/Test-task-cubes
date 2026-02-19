@@ -51,19 +51,29 @@ namespace CubeGame
         {
             if (towerIndex < 0 || towerIndex >= _model.Count) return;
 
-            float removedOffset = _model.GetCube(towerIndex).HorizontalOffset;
             float belowOffset = towerIndex > 0
                 ? _model.GetCube(towerIndex - 1).HorizontalOffset
                 : 0f;
-            float shift = removedOffset - belowOffset;
 
             _model.RemoveCubeAt(towerIndex);
 
-            for (int i = towerIndex; i < _model.Count; i++)
+            if (towerIndex < _model.Count)
             {
-                var cube = _model.GetCube(i);
-                cube.HorizontalOffset -= shift;
-                _model.SetCube(i, cube);
+                float firstAboveOffset = _model.GetCube(towerIndex).HorizontalOffset;
+                float gap = firstAboveOffset - belowOffset;
+                float maxOff = _config.CubeUISize * _config.MaxHorizontalOffsetPercent;
+                float clampedGap = Mathf.Clamp(gap, -maxOff, maxOff);
+                float shift = gap - clampedGap;
+
+                if (Mathf.Abs(shift) > 0.001f)
+                {
+                    for (int i = towerIndex; i < _model.Count; i++)
+                    {
+                        var cube = _model.GetCube(i);
+                        cube.HorizontalOffset -= shift;
+                        _model.SetCube(i, cube);
+                    }
+                }
             }
 
             if (!silent)
