@@ -60,7 +60,7 @@ namespace CubeGame
         }
 
         /// <summary>
-        /// Remove a cube visual and animate remaining cubes collapsing down.
+        /// Remove a cube visual, destroy it, and animate remaining cubes collapsing down.
         /// Call this AFTER the model has been updated.
         /// </summary>
         public void RemoveCubeVisual(int towerIndex)
@@ -71,9 +71,30 @@ namespace CubeGame
             _cubeViews.RemoveAt(towerIndex);
             Destroy(removed.gameObject);
 
+            CollapseFrom(towerIndex);
+        }
+
+        /// <summary>
+        /// Pick up a cube: hide it, remove from list, collapse remaining.
+        /// Does NOT destroy the GameObject so drag events keep working.
+        /// Call this AFTER the model has been updated.
+        /// </summary>
+        public void PickUpCubeVisual(int towerIndex)
+        {
+            if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
+
+            var picked = _cubeViews[towerIndex];
+            picked.SetVisible(false);
+            _cubeViews.RemoveAt(towerIndex);
+
+            CollapseFrom(towerIndex);
+        }
+
+        private void CollapseFrom(int fromIndex)
+        {
             float cubeSize = _config.CubeUISize;
 
-            for (int i = towerIndex; i < _cubeViews.Count; i++)
+            for (int i = fromIndex; i < _cubeViews.Count; i++)
             {
                 _cubeViews[i].TowerIndex = i;
                 float targetY = cubeSize * 0.5f + i * cubeSize;

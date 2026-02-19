@@ -25,7 +25,9 @@ namespace CubeGame
         [Inject] private CubeAnimationService _animService;
 
         private Camera _uiCamera;
-        private TowerCubeView _draggedTowerCube;
+        private int _pickedColorIndex;
+        private Sprite _pickedSprite;
+        private GameObject _pickedCubeGO;
 
         private void Start()
         {
@@ -111,10 +113,16 @@ namespace CubeGame
 
         public void OnTowerCubeDragStarted(TowerCubeView cube, PointerEventData e)
         {
-            _draggedTowerCube = cube;
-            cube.SetVisible(false);
+            _pickedColorIndex = cube.ColorIndex;
+            _pickedSprite = cube.Sprite;
+            _pickedCubeGO = cube.gameObject;
+
+            int towerIndex = cube.TowerIndex;
+            _towerService.RemoveCube(towerIndex);
+            _towerView.PickUpCubeVisual(towerIndex);
+
             _dragProxy.BeginTowerDrag(
-                cube.Sprite, cube.ColorIndex, cube.TowerIndex,
+                _pickedSprite, _pickedColorIndex, towerIndex,
                 _config.CubeUISize, e.position);
         }
 
@@ -125,24 +133,51 @@ namespace CubeGame
 
         public void OnTowerCubeDragEnded(TowerCubeView cube, PointerEventData e)
         {
-            int towerIndex = _dragProxy.TowerIndex;
-            Sprite sprite = _dragProxy.CurrentSprite;
+            Vector2 dropPos = e.position;
             _dragProxy.EndDrag();
 
-            if (_holeView.IsInsideHole(e.position, _uiCamera))
+            if (_holeView.IsInsideHole(dropPos, _uiCamera))
             {
-                PlayHoleAnimation(e.position, sprite);
-                _towerService.RemoveCube(towerIndex);
-                _towerView.RemoveCubeVisual(towerIndex);
+                PlayHoleAnimation(dropPos, _pickedSprite);
+                SaveIfEnabled();
+            }
+            else if (_towerView.IsDropOnTower(dropPos, _uiCamera)
+                     && !_towerService.IsEmpty
+                     && _towerView.IsDropOnTopCube(dropPos, _uiCamera)
+                     && _towerService.CanAddMore(_towerView.GetZoneHeight(), _config.CubeUISize))
+            {
+                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
+                float dropOffsetX = towerCoords.x - _towerView.GetTowerBaseX();
+                var data = _towerService.PlaceCube(_pickedColorIndex, dropOffsetX);
+                _towerView.AddCubeVisual(data);
+                SaveIfEnabled();
+            }
+            else if (_towerView.IsDropOnTower(dropPos, _uiCamera) && _towerService.IsEmpty)
+            {
+                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
+                float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
+                float halfCube = _config.CubeUISize * 0.5f;
+                float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
+
+                _towerService.SetTowerBase(new Vector2(baseX, _config.CubeUISize * 0.5f));
+                var data = _towerService.PlaceCube(_pickedColorIndex, 0f);
+                _towerView.AddCubeVisual(data);
                 SaveIfEnabled();
             }
             else
             {
-                if (_draggedTowerCube != null)
-                    _draggedTowerCube.SetVisible(true);
+                PlayMissAnimation(dropPos, _pickedSprite);
+                SaveIfEnabled();
             }
 
-            _draggedTowerCube = null;
+            if (_pickedCubeGO != null)
+            {
+                _pickedCubeGO.SetActive(false);
+                Destroy(_pickedCubeGO);
+            }
+
+            _pickedCubeGO = null;
+            _pickedSprite = null;
         }
 
         private void SaveIfEnabled()
@@ -173,7 +208,11 @@ namespace CubeGame
                 _canvas.transform as RectTransform, screenPos, _uiCamera, out Vector2 localPoint);
             rt.anchoredPosition = localPoint;
 
-            _animService.PlayExplode(rt).OnComplete(() => Destroy(go));
+            _animService.PlayExplode(rt).OnComplete(() => 
+            {
+                go.SetActive(false);
+                Destroy(go);
+            });
         }
 
         private void PlayHoleAnimation(Vector2 screenPos, Sprite sprite)
@@ -205,7 +244,11 @@ namespace CubeGame
                 canvasRect, RectTransformUtility.WorldToScreenPoint(_uiCamera, holeCenterWorld),
                 _uiCamera, out Vector2 holeLocal);
 
-            _animService.PlaySwallowIntoHole(rt, holeLocal).OnComplete(() => Destroy(go));
+            _animService.PlaySwallowIntoHole(rt, holeLocal).OnComplete(() => 
+            {
+                go.SetActive(false);
+                Destroy(go);
+            });
         }
     }
 }
