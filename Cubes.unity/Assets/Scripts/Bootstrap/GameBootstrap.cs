@@ -1,20 +1,23 @@
-using UnityEngine;
 using Zenject;
 
 namespace CubeGame
 {
-    public class GameBootstrap : MonoBehaviour
+    public class GameBootstrap : IInitializable
     {
-        [SerializeField] private GameController _gameController;
-        [SerializeField] private CubeScrollView _scrollView;
+        private readonly GameStateMachine _stateMachine;
+        private readonly LoadingState _loadingState;
+        private readonly GameplayState _gameplayState;
 
-        [Inject] private GameStateMachine _stateMachine;
-        [Inject] private LoadingState _loadingState;
-        [Inject] private GameplayState _gameplayState;
-
-        private async void Start()
+        public GameBootstrap(GameStateMachine stateMachine, LoadingState loadingState,
+            GameplayState gameplayState)
         {
-            _gameplayState.SetSceneReferences(_gameController, _scrollView);
+            _stateMachine = stateMachine;
+            _loadingState = loadingState;
+            _gameplayState = gameplayState;
+        }
+
+        public async void Initialize()
+        {
             await _stateMachine.TransitionTo(_loadingState);
             await _stateMachine.TransitionTo(_gameplayState);
         }

@@ -7,19 +7,15 @@ namespace CubeGame
     {
         private readonly CubeSizeProvider _cubeSizeProvider;
         private readonly IGameConfig _config;
+        private readonly GameController _gameController;
+        private readonly CubeScrollView _scrollView;
 
-        private GameController _gameController;
-        private CubeScrollView _scrollView;
-
-        public GameplayState(CubeSizeProvider cubeSizeProvider, IGameConfig config)
+        public GameplayState(CubeSizeProvider cubeSizeProvider, IGameConfig config,
+            GameController gameController, CubeScrollView scrollView)
         {
             _cubeSizeProvider = cubeSizeProvider;
             _config = config;
-        }
-
-        public void SetSceneReferences(GameController controller, CubeScrollView scrollView)
-        {
-            _gameController = controller;
+            _gameController = gameController;
             _scrollView = scrollView;
         }
 

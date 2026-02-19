@@ -1,26 +1,23 @@
 using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using Zenject;
 
 namespace CubeGame
 {
-    public class GameController : MonoBehaviour
+    public class GameController
     {
-        [Header("Scene References")]
-        [SerializeField] private Canvas _canvas;
-        [SerializeField] private TowerView _towerView;
-        [SerializeField] private HoleView _holeView;
-        [SerializeField] private CubeScrollView _scrollView;
-        [SerializeField] private DragProxyView _dragProxy;
-
-        [Inject] private ITowerService _towerService;
-        [Inject] private ISaveService _saveService;
-        [Inject] private IGameConfig _config;
-        [Inject] private IMessageService _messageService;
-        [Inject] private CubeAnimationService _animService;
-        [Inject] private CubeSizeProvider _cubeSizeProvider;
+        private readonly ITowerService _towerService;
+        private readonly ISaveService _saveService;
+        private readonly IGameConfig _config;
+        private readonly IMessageService _messageService;
+        private readonly CubeSizeProvider _cubeSizeProvider;
+        private readonly DropHandler _dropHandler;
+        private readonly CubeEffectsService _effectsService;
+        private readonly Canvas _canvas;
+        private readonly TowerView _towerView;
+        private readonly HoleView _holeView;
+        private readonly CubeScrollView _scrollView;
+        private readonly DragProxyView _dragProxy;
 
         private Camera _uiCamera;
         private int _pickedColorIndex;
@@ -29,12 +26,41 @@ namespace CubeGame
 
         private float CubeSize => _cubeSizeProvider.Size;
 
+        public GameController(
+            ITowerService towerService,
+            ISaveService saveService,
+            IGameConfig config,
+            IMessageService messageService,
+            CubeSizeProvider cubeSizeProvider,
+            DropHandler dropHandler,
+            CubeEffectsService effectsService,
+            Canvas canvas,
+            TowerView towerView,
+            HoleView holeView,
+            CubeScrollView scrollView,
+            DragProxyView dragProxy)
+        {
+            _towerService = towerService;
+            _saveService = saveService;
+            _config = config;
+            _messageService = messageService;
+            _cubeSizeProvider = cubeSizeProvider;
+            _dropHandler = dropHandler;
+            _effectsService = effectsService;
+            _canvas = canvas;
+            _towerView = towerView;
+            _holeView = holeView;
+            _scrollView = scrollView;
+            _dragProxy = dragProxy;
+        }
+
         public void Initialize()
         {
             _uiCamera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null
                 : _canvas.worldCamera;
 
+            _effectsService.SetCamera(_uiCamera);
             _dragProxy.Initialize(_canvas, _uiCamera);
 
             _towerView.Initialize(this);
@@ -61,50 +87,11 @@ namespace CubeGame
             int colorIndex = cube.ColorIndex;
             _dragProxy.EndDrag();
 
-            if (!_towerView.IsDropOnTower(dropPos, _uiCamera))
-            {
-                _towerService.NotifyMiss();
-                PlayMissAnimation(dropPos, sprite);
-                return;
-            }
-
-            float cubeSize = CubeSize;
-
-            if (!_towerService.CanAddMore(_towerView.GetZoneHeight(), cubeSize))
-            {
-                _towerService.NotifyTowerFull();
-                PlayMissAnimation(dropPos, sprite);
-                return;
-            }
-
-            if (_towerService.IsEmpty)
-            {
-                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
-                float halfCube = cubeSize * 0.5f;
-                float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
-
-                _towerService.SetTowerBase(new Vector2(baseX, cubeSize * 0.5f));
-                var data = _towerService.PlaceCube(colorIndex, 0f);
-                _towerView.AddCubeVisual(data);
-                SaveIfEnabled();
-            }
-            else if (_towerView.IsDropOnTopCube(dropPos, _uiCamera))
-            {
-                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
-                var data = _towerService.PlaceCube(colorIndex, dropOffsetX);
-                _towerView.AddCubeVisual(data);
-                SaveIfEnabled();
-            }
-            else
-            {
-                _towerService.NotifyMiss();
-                PlayMissAnimation(dropPos, sprite);
-            }
+            var result = _dropHandler.Resolve(dropPos, _uiCamera, _towerView, _holeView, checkHole: false);
+            HandleDropResult(result, dropPos, sprite, colorIndex);
         }
 
-        // ===== Tower cube drag handlers (to hole) =====
+        // ===== Tower cube drag handlers =====
 
         public void OnTowerCubeDragStarted(TowerCubeView cube, PointerEventData e)
         {
@@ -131,123 +118,78 @@ namespace CubeGame
             Vector2 dropPos = e.position;
             _dragProxy.EndDrag();
 
-            if (_holeView.IsInsideHole(dropPos, _uiCamera))
-            {
-                _messageService.ShowMessage(_config.MsgCubeRemoved);
-                PlayHoleAnimation(dropPos, _pickedSprite);
-                SaveIfEnabled();
-            }
-            else if (_towerView.IsDropOnTower(dropPos, _uiCamera)
-                     && !_towerService.IsEmpty
-                     && _towerView.IsDropOnTopCube(dropPos, _uiCamera)
-                     && _towerService.CanAddMore(_towerView.GetZoneHeight(), CubeSize))
-            {
-                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
-                var data = _towerService.PlaceCube(_pickedColorIndex, dropOffsetX);
-                _towerView.AddCubeVisual(data);
-                SaveIfEnabled();
-            }
-            else if (_towerView.IsDropOnTower(dropPos, _uiCamera) && _towerService.IsEmpty)
-            {
-                Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
-                float halfCube = CubeSize * 0.5f;
-                float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
-
-                _towerService.SetTowerBase(new Vector2(baseX, CubeSize * 0.5f));
-                var data = _towerService.PlaceCube(_pickedColorIndex, 0f);
-                _towerView.AddCubeVisual(data);
-                SaveIfEnabled();
-            }
-            else
-            {
-                _towerService.NotifyMiss();
-                PlayMissAnimation(dropPos, _pickedSprite);
-                SaveIfEnabled();
-            }
+            var result = _dropHandler.Resolve(dropPos, _uiCamera, _towerView, _holeView, checkHole: true);
+            HandleDropResult(result, dropPos, _pickedSprite, _pickedColorIndex);
 
             if (_pickedCubeGO != null)
             {
                 var rt = _pickedCubeGO.GetComponent<RectTransform>();
                 if (rt != null) rt.DOKill();
                 _pickedCubeGO.SetActive(false);
-                Destroy(_pickedCubeGO);
+                Object.Destroy(_pickedCubeGO);
             }
 
             _pickedCubeGO = null;
             _pickedSprite = null;
         }
 
+        private void HandleDropResult(DropResult result, Vector2 dropPos, Sprite sprite, int colorIndex)
+        {
+            switch (result)
+            {
+                case DropResult.PlaceFirst:
+                    PlaceFirstCube(dropPos, colorIndex);
+                    break;
+
+                case DropResult.PlaceOnTop:
+                    PlaceOnTop(dropPos, colorIndex);
+                    break;
+
+                case DropResult.Hole:
+                    _messageService.ShowMessage(_config.MsgCubeRemoved);
+                    _effectsService.PlayHoleSwallow(dropPos, sprite);
+                    SaveIfEnabled();
+                    break;
+
+                case DropResult.TowerFull:
+                    _towerService.NotifyTowerFull();
+                    _effectsService.PlayMiss(dropPos, sprite);
+                    break;
+
+                case DropResult.Miss:
+                    _towerService.NotifyMiss();
+                    _effectsService.PlayMiss(dropPos, sprite);
+                    break;
+            }
+        }
+
+        private void PlaceFirstCube(Vector2 dropPos, int colorIndex)
+        {
+            float cubeSize = CubeSize;
+            Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
+            float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
+            float halfCube = cubeSize * 0.5f;
+            float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
+
+            _towerService.SetTowerBase(new Vector2(baseX, cubeSize * 0.5f));
+            var data = _towerService.PlaceCube(colorIndex, 0f);
+            _towerView.AddCubeVisual(data);
+            SaveIfEnabled();
+        }
+
+        private void PlaceOnTop(Vector2 dropPos, int colorIndex)
+        {
+            Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
+            float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
+            var data = _towerService.PlaceCube(colorIndex, dropOffsetX);
+            _towerView.AddCubeVisual(data);
+            SaveIfEnabled();
+        }
+
         private void SaveIfEnabled()
         {
             if (_config.EnableSave)
                 _saveService.Save();
-        }
-
-        // ===== Animation helpers =====
-
-        private void PlayMissAnimation(Vector2 screenPos, Sprite sprite)
-        {
-            var go = new GameObject("CubeMiss");
-            go.transform.SetParent(_canvas.transform, false);
-            go.transform.SetAsLastSibling();
-
-            var rt = go.GetComponent<RectTransform>();
-            if (rt == null) rt = go.AddComponent<RectTransform>();
-
-            var img = go.AddComponent<Image>();
-            go.AddComponent<CanvasGroup>();
-
-            img.sprite = sprite;
-            img.raycastTarget = false;
-            rt.sizeDelta = new Vector2(CubeSize, CubeSize);
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvas.transform as RectTransform, screenPos, _uiCamera, out Vector2 localPoint);
-            rt.anchoredPosition = localPoint;
-
-            _animService.PlayExplode(rt).OnComplete(() => 
-            {
-                go.SetActive(false);
-                Destroy(go);
-            });
-        }
-
-        private void PlayHoleAnimation(Vector2 screenPos, Sprite sprite)
-        {
-            var go = new GameObject("CubeSwallow");
-            go.transform.SetParent(_canvas.transform, false);
-            go.transform.SetAsLastSibling();
-
-            var rt = go.GetComponent<RectTransform>();
-            if (rt == null) rt = go.AddComponent<RectTransform>();
-
-            var img = go.AddComponent<Image>();
-            go.AddComponent<CanvasGroup>();
-
-            img.sprite = sprite;
-            img.raycastTarget = false;
-            rt.sizeDelta = new Vector2(CubeSize, CubeSize);
-
-            var canvasRect = _canvas.transform as RectTransform;
-
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect, screenPos, _uiCamera, out Vector2 dropLocal);
-            rt.anchoredPosition = dropLocal;
-
-            Vector3[] holeCorners = new Vector3[4];
-            _holeView.HoleRect.GetWorldCorners(holeCorners);
-            Vector2 holeCenterWorld = (holeCorners[0] + holeCorners[2]) * 0.5f;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                canvasRect, RectTransformUtility.WorldToScreenPoint(_uiCamera, holeCenterWorld),
-                _uiCamera, out Vector2 holeLocal);
-
-            _animService.PlaySwallowIntoHole(rt, holeLocal).OnComplete(() => 
-            {
-                go.SetActive(false);
-                Destroy(go);
-            });
         }
     }
 }
