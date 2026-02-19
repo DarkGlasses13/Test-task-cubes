@@ -31,11 +31,11 @@ namespace CubeGame
                 Destroy(child.gameObject);
 
             float size = _config.CubeUISize;
-            float padding = _spacing;
-            float totalWidth = padding + _config.CubeCount * (size + _spacing);
+            int count = _config.CubeCount;
+            float totalWidth = count * size + Mathf.Max(0, count - 1) * _spacing;
             _content.sizeDelta = new Vector2(totalWidth, _content.sizeDelta.y);
 
-            for (int i = 0; i < _config.CubeCount; i++)
+            for (int i = 0; i < count; i++)
             {
                 var go = Instantiate(_cubeItemPrefab, _content);
                 var rt = go.GetComponent<RectTransform>();
@@ -44,7 +44,7 @@ namespace CubeGame
                 rt.anchorMax = new Vector2(0f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(size, size);
-                rt.anchoredPosition = new Vector2(padding + i * (size + _spacing) + size * 0.5f, 0f);
+                rt.anchoredPosition = new Vector2(i * (size + _spacing) + size * 0.5f, 0f);
 
                 var cubeItem = go.GetComponent<CubeItemView>();
                 cubeItem.Setup(
