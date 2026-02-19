@@ -98,7 +98,7 @@ namespace CubeGame
             else if (_towerView.IsDropOnTopCube(dropPos, _uiCamera))
             {
                 Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float dropOffsetX = towerCoords.x - _towerView.GetTowerBaseX();
+                float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
                 var data = _towerService.PlaceCube(colorIndex, dropOffsetX);
                 _towerView.AddCubeVisual(data);
                 SaveIfEnabled();
@@ -149,7 +149,7 @@ namespace CubeGame
                      && _towerService.CanAddMore(_towerView.GetZoneHeight(), _config.CubeUISize))
             {
                 Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
-                float dropOffsetX = towerCoords.x - _towerView.GetTowerBaseX();
+                float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
                 var data = _towerService.PlaceCube(_pickedColorIndex, dropOffsetX);
                 _towerView.AddCubeVisual(data);
                 SaveIfEnabled();

@@ -28,9 +28,20 @@ namespace CubeGame
         public CubeData PlaceCube(int colorIndex, float dropOffsetX)
         {
             float maxOffset = _config.CubeUISize * _config.MaxHorizontalOffsetPercent;
-            float clampedOffset = _model.Count == 0 ? 0f : Mathf.Clamp(dropOffsetX, -maxOffset, maxOffset);
 
-            var cubeData = new CubeData(_nextCubeId++, colorIndex, clampedOffset);
+            float newAbsoluteOffset;
+            if (_model.Count == 0)
+            {
+                newAbsoluteOffset = 0f;
+            }
+            else
+            {
+                float topOffset = _model.GetCube(_model.Count - 1).HorizontalOffset;
+                float clampedRelative = Mathf.Clamp(dropOffsetX, -maxOffset, maxOffset);
+                newAbsoluteOffset = topOffset + clampedRelative;
+            }
+
+            var cubeData = new CubeData(_nextCubeId++, colorIndex, newAbsoluteOffset);
             _model.AddCube(cubeData);
             _messageService.ShowMessage(LocalizationKeys.CubePlaced);
             return cubeData;
@@ -39,7 +50,22 @@ namespace CubeGame
         public void RemoveCube(int towerIndex, bool silent = false)
         {
             if (towerIndex < 0 || towerIndex >= _model.Count) return;
+
+            float removedOffset = _model.GetCube(towerIndex).HorizontalOffset;
+            float belowOffset = towerIndex > 0
+                ? _model.GetCube(towerIndex - 1).HorizontalOffset
+                : 0f;
+            float shift = removedOffset - belowOffset;
+
             _model.RemoveCubeAt(towerIndex);
+
+            for (int i = towerIndex; i < _model.Count; i++)
+            {
+                var cube = _model.GetCube(i);
+                cube.HorizontalOffset -= shift;
+                _model.SetCube(i, cube);
+            }
+
             if (!silent)
                 _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
         }

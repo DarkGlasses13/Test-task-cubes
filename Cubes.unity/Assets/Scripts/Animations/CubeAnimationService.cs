@@ -43,11 +43,11 @@ namespace CubeGame
             return seq;
         }
 
-        public Sequence PlayCollapse(RectTransform target, float targetY, float bounceHeight = 20f, float duration = 0.45f)
+        public Sequence PlayCollapse(RectTransform target, float targetX, float targetY, float bounceHeight = 20f, float duration = 0.45f)
         {
             target.DOKill();
             var seq = DOTween.Sequence().SetTarget(target);
-            seq.Append(target.DOAnchorPosY(targetY, duration * 0.45f).SetEase(Ease.InQuad));
+            seq.Append(target.DOAnchorPos(new Vector2(targetX, targetY), duration * 0.45f).SetEase(Ease.InQuad));
             seq.Append(target.DOAnchorPosY(targetY + bounceHeight, duration * 0.2f).SetEase(Ease.OutQuad));
             seq.Append(target.DOAnchorPosY(targetY, duration * 0.35f).SetEase(Ease.OutBounce));
             return seq;

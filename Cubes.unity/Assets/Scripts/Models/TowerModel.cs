@@ -17,6 +17,8 @@ namespace CubeGame
 
         public CubeData GetCube(int index) => _cubes[index];
 
+        public void SetCube(int index, CubeData data) => _cubes[index] = data;
+
         public void AddCube(CubeData cube)
         {
             _cubes.Add(cube);

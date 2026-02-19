@@ -96,12 +96,14 @@ namespace CubeGame
         private void CollapseFrom(int fromIndex)
         {
             float cubeSize = _config.CubeUISize;
+            Vector2 towerBase = _model.TowerBase.Value;
 
             for (int i = fromIndex; i < _cubeViews.Count; i++)
             {
                 _cubeViews[i].TowerIndex = i;
+                float targetX = towerBase.x + _model.GetCube(i).HorizontalOffset;
                 float targetY = cubeSize * 0.5f + i * cubeSize;
-                _animService.PlayCollapse(_cubeViews[i].RectTransform, targetY);
+                _animService.PlayCollapse(_cubeViews[i].RectTransform, targetX, targetY);
             }
         }
 
@@ -139,6 +141,14 @@ namespace CubeGame
             return _model.TowerBase.Value.x;
         }
 
+        public float GetTopCubeX()
+        {
+            if (_model.Count == 0)
+                return _model.TowerBase.Value.x;
+
+            return _model.TowerBase.Value.x + _model.GetCube(_model.Count - 1).HorizontalOffset;
+        }
+
         /// <summary>
         /// Convert screen position to tower coordinate system
         /// where Y=0 is at the bottom of the container.
@@ -148,7 +158,8 @@ namespace CubeGame
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _buildZone, screenPos, cam, out Vector2 localPoint);
 
-            return new Vector2(localPoint.x, localPoint.y - _buildZone.rect.yMin);
+            Rect r = _buildZone.rect;
+            return new Vector2(localPoint.x - r.center.x, localPoint.y - r.yMin);
         }
 
         private TowerCubeView CreateCubeView(int index, CubeData data, bool animate)
