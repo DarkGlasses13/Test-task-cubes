@@ -29,21 +29,13 @@ namespace CubeGame
 
         private float CubeSize => _cubeSizeProvider.Size;
 
-        private void Start()
+        public void Initialize()
         {
             _uiCamera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null
                 : _canvas.worldCamera;
 
-            Canvas.ForceUpdateCanvases();
-            _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _config.CubeSizeFillPercent);
-
             _dragProxy.Initialize(_canvas, _uiCamera);
-
-            if (_config.EnableSave)
-                _saveService.Load();
-            else
-                _saveService.ClearSave();
 
             _towerView.Initialize(this);
             _towerView.RebuildFromModel();
