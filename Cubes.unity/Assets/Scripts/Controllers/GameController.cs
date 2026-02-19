@@ -139,7 +139,7 @@ namespace CubeGame
 
             if (_holeView.IsInsideHole(dropPos, _uiCamera))
             {
-                _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
+                _messageService.ShowMessage(_config.MsgCubeRemoved);
                 PlayHoleAnimation(dropPos, _pickedSprite);
                 SaveIfEnabled();
             }

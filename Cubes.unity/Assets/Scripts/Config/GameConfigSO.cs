@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace CubeGame
 {
@@ -22,11 +23,22 @@ namespace CubeGame
         [Header("Save")]
         [SerializeField] private bool _enableSave = true;
 
+        [Header("Messages")]
+        [SerializeField] private LocalizedString _msgCubePlaced;
+        [SerializeField] private LocalizedString _msgCubeRemoved;
+        [SerializeField] private LocalizedString _msgCubeMissed;
+        [SerializeField] private LocalizedString _msgTowerFull;
+
         public int CubeCount => _cubeSprites != null ? _cubeSprites.Length : 0;
         public IReadOnlyList<Sprite> CubeSprites => _cubeSprites;
         public float CubeUISize => _cubeUISize;
         public float MaxHorizontalOffsetPercent => _maxHorizontalOffsetPercent;
         public float DropTolerance => _dropTolerance;
         public bool EnableSave => _enableSave;
+
+        public LocalizedString MsgCubePlaced => _msgCubePlaced;
+        public LocalizedString MsgCubeRemoved => _msgCubeRemoved;
+        public LocalizedString MsgCubeMissed => _msgCubeMissed;
+        public LocalizedString MsgTowerFull => _msgTowerFull;
     }
 }

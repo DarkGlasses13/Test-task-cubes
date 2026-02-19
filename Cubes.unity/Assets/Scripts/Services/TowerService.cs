@@ -43,7 +43,7 @@ namespace CubeGame
 
             var cubeData = new CubeData(_nextCubeId++, colorIndex, newAbsoluteOffset);
             _model.AddCube(cubeData);
-            _messageService.ShowMessage(LocalizationKeys.CubePlaced);
+            _messageService.ShowMessage(_config.MsgCubePlaced);
             return cubeData;
         }
 
@@ -77,7 +77,7 @@ namespace CubeGame
             }
 
             if (!silent)
-                _messageService.ShowMessage(LocalizationKeys.CubeRemoved);
+                _messageService.ShowMessage(_config.MsgCubeRemoved);
         }
 
         public void SetTowerBase(Vector2 localPosition)
@@ -87,12 +87,12 @@ namespace CubeGame
 
         public void NotifyMiss()
         {
-            _messageService.ShowMessage(LocalizationKeys.CubeMissed);
+            _messageService.ShowMessage(_config.MsgCubeMissed);
         }
 
         public void NotifyTowerFull()
         {
-            _messageService.ShowMessage(LocalizationKeys.TowerFull);
+            _messageService.ShowMessage(_config.MsgTowerFull);
         }
     }
 }

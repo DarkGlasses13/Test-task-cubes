@@ -37,3 +37,42 @@ MonoBehaviour:
   _maxHorizontalOffsetPercent: 0.5
   _dropTolerance: 1.5
   _enableSave: 0
+  _msgCubePlaced:
+    m_TableReference:
+      m_TableCollectionName: GUID:179e91fed046d6545ac9202575038fee
+    m_TableEntryReference:
+      m_KeyId: 867164160
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _msgCubeRemoved:
+    m_TableReference:
+      m_TableCollectionName: GUID:179e91fed046d6545ac9202575038fee
+    m_TableEntryReference:
+      m_KeyId: 892329984
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _msgCubeMissed:
+    m_TableReference:
+      m_TableCollectionName: GUID:179e91fed046d6545ac9202575038fee
+    m_TableEntryReference:
+      m_KeyId: 896524288
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  _msgTowerFull:
+    m_TableReference:
+      m_TableCollectionName: GUID:179e91fed046d6545ac9202575038fee
+    m_TableEntryReference:
+      m_KeyId: 896524289
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  references:
+    version: 2
+    RefIds: []

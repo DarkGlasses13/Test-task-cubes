@@ -1,20 +1,21 @@
 using System;
 using UniRx;
-using UnityEngine.Localization.Settings;
+using UnityEngine.Localization;
 
 namespace CubeGame
 {
     public class MessageService : IMessageService
     {
-        private const string TableName = "Messages";
-
         private readonly Subject<string> _messageSubject = new Subject<string>();
 
         public IObservable<string> OnMessage => _messageSubject;
 
-        public void ShowMessage(string key)
+        public void ShowMessage(LocalizedString localizedString)
         {
-            var handle = LocalizationSettings.StringDatabase.GetLocalizedStringAsync(TableName, key);
+            if (localizedString == null || localizedString.IsEmpty)
+                return;
+
+            var handle = localizedString.GetLocalizedStringAsync();
 
             if (handle.IsDone)
             {

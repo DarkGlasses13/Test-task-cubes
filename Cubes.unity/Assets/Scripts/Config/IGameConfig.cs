@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Localization;
 
 namespace CubeGame
 {
@@ -11,5 +12,10 @@ namespace CubeGame
         float MaxHorizontalOffsetPercent { get; }
         float DropTolerance { get; }
         bool EnableSave { get; }
+
+        LocalizedString MsgCubePlaced { get; }
+        LocalizedString MsgCubeRemoved { get; }
+        LocalizedString MsgCubeMissed { get; }
+        LocalizedString MsgTowerFull { get; }
     }
 }
