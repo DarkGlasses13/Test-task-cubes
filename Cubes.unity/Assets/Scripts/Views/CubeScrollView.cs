@@ -28,7 +28,10 @@ namespace CubeGame
         private void PopulateCubes()
         {
             foreach (Transform child in _content)
+            {
+                child.gameObject.SetActive(false);
                 Destroy(child.gameObject);
+            }
 
             float size = _config.CubeUISize;
             int count = _config.CubeCount;

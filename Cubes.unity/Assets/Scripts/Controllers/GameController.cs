@@ -177,6 +177,7 @@ namespace CubeGame
             {
                 var rt = _pickedCubeGO.GetComponent<RectTransform>();
                 if (rt != null) rt.DOKill();
+                _pickedCubeGO.SetActive(false);
                 Destroy(_pickedCubeGO);
             }
 

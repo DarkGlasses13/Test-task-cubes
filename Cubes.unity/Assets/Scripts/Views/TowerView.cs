@@ -71,6 +71,7 @@ namespace CubeGame
             var removed = _cubeViews[towerIndex];
             _cubeViews.RemoveAt(towerIndex);
             removed.RectTransform.DOKill();
+            removed.gameObject.SetActive(false);
             Destroy(removed.gameObject);
 
             CollapseFrom(towerIndex);
@@ -204,6 +205,7 @@ namespace CubeGame
             {
                 if (view == null) continue;
                 view.RectTransform.DOKill();
+                view.gameObject.SetActive(false);
                 Destroy(view.gameObject);
             }
             _cubeViews.Clear();
