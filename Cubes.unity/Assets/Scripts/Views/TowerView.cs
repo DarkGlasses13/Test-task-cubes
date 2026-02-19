@@ -119,8 +119,8 @@ namespace CubeGame
             if (Mathf.Abs(towerCoords.x - towerBase.x) > tolerance)
                 return false;
 
-            float topCubeY = cubeSize * 0.5f + (_model.Count - 1) * cubeSize;
-            if (towerCoords.y < topCubeY - cubeSize)
+            float newCubeCenter = cubeSize * 0.5f + _model.Count * cubeSize;
+            if (towerCoords.y < newCubeCenter)
                 return false;
 
             return true;
