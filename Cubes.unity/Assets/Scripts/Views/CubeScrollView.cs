@@ -42,7 +42,7 @@ namespace CubeGame
 
             float size = _cubeSizeProvider.Size;
             int count = _config.CubeCount;
-            float totalWidth = count * size + Mathf.Max(0, count - 1) * _spacing;
+            float totalWidth = _spacing + count * size + Mathf.Max(0, count - 1) * _spacing + _spacing;
             _content.sizeDelta = new Vector2(totalWidth, _content.sizeDelta.y);
 
             for (int i = 0; i < count; i++)
@@ -54,7 +54,7 @@ namespace CubeGame
                 rt.anchorMax = new Vector2(0f, 0.5f);
                 rt.pivot = new Vector2(0.5f, 0.5f);
                 rt.sizeDelta = new Vector2(size, size);
-                rt.anchoredPosition = new Vector2(i * (size + _spacing) + size * 0.5f, 0f);
+                rt.anchoredPosition = new Vector2(_spacing + i * (size + _spacing) + size * 0.5f, 0f);
 
                 var cubeItem = go.GetComponent<CubeItemView>();
                 cubeItem.Setup(

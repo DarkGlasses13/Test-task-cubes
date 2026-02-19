@@ -178,7 +178,7 @@ MonoBehaviour:
   _scrollRect: {fileID: 243933687}
   _content: {fileID: 365624784}
   _cubeItemPrefab: {fileID: 3222484950263950858, guid: 93cf7187c8db90143a199df75ce30bc2, type: 3}
-  _spacing: 10
+  _spacing: 30
 --- !u!114 &243933687
 MonoBehaviour:
   m_ObjectHideFlags: 0
