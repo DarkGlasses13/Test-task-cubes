@@ -1,13 +1,16 @@
+using System.IO;
 using UnityEngine;
 
 namespace CubeGame
 {
     public class SaveService : ISaveService
     {
-        private const string SaveKey = "cube_tower_save";
+        private static readonly string SavePath =
+            Path.Combine(Application.persistentDataPath, "tower_save.json");
+
         private readonly TowerModel _model;
 
-        public bool HasSave => PlayerPrefs.HasKey(SaveKey);
+        public bool HasSave => File.Exists(SavePath);
 
         public SaveService(TowerModel model)
         {
@@ -17,16 +20,15 @@ namespace CubeGame
         public void Save()
         {
             var state = _model.ToState();
-            string json = JsonUtility.ToJson(state);
-            PlayerPrefs.SetString(SaveKey, json);
-            PlayerPrefs.Save();
+            string json = JsonUtility.ToJson(state, true);
+            File.WriteAllText(SavePath, json);
         }
 
         public void Load()
         {
             if (!HasSave) return;
 
-            string json = PlayerPrefs.GetString(SaveKey);
+            string json = File.ReadAllText(SavePath);
             var state = JsonUtility.FromJson<TowerState>(json);
             if (state != null)
                 _model.LoadState(state);
@@ -34,8 +36,8 @@ namespace CubeGame
 
         public void ClearSave()
         {
-            PlayerPrefs.DeleteKey(SaveKey);
-            PlayerPrefs.Save();
+            if (File.Exists(SavePath))
+                File.Delete(SavePath);
         }
     }
 }
