@@ -118,10 +118,10 @@ namespace CubeGame
 
             Vector2 towerCoords = ScreenToTowerCoords(screenPos, cam);
             float cubeSize = _config.CubeUISize;
-            Vector2 towerBase = _model.TowerBase.Value;
+            float topCubeX = GetTopCubeX();
             float tolerance = cubeSize * _config.DropTolerance;
 
-            if (Mathf.Abs(towerCoords.x - towerBase.x) > tolerance)
+            if (Mathf.Abs(towerCoords.x - topCubeX) > tolerance)
                 return false;
 
             float newCubeCenter = cubeSize * 0.5f + _model.Count * cubeSize;
