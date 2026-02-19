@@ -15,6 +15,7 @@ namespace CubeGame
             Container.Bind<ISaveService>().To<SaveService>().AsSingle();
             Container.Bind<IMessageService>().To<MessageService>().AsSingle();
             Container.Bind<CubeAnimationService>().AsSingle();
+            Container.Bind<CubeSizeProvider>().AsSingle();
         }
     }
 }

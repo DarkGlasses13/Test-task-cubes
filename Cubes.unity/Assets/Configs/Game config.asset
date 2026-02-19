@@ -33,7 +33,7 @@ MonoBehaviour:
   - {fileID: -318317726, guid: 0d4ffde5ed0607d498a38e80dcca55c6, type: 3}
   - {fileID: 559808381, guid: 0d4ffde5ed0607d498a38e80dcca55c6, type: 3}
   - {fileID: 900249589, guid: 0d4ffde5ed0607d498a38e80dcca55c6, type: 3}
-  _cubeUISize: 120
+  _cubeSizeFillPercent: 0.6
   _maxHorizontalOffsetPercent: 0.5
   _dropTolerance: 1.5
   _enableSave: 1

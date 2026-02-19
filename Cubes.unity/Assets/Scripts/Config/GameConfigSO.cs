@@ -11,7 +11,9 @@ namespace CubeGame
         [SerializeField] private Sprite[] _cubeSprites;
 
         [Header("UI Settings")]
-        [SerializeField] private float _cubeUISize = 120f;
+        [Tooltip("Cube size as fraction of scroll panel height (0.85 = 85%)")]
+        [Range(0.5f, 1f)]
+        [SerializeField] private float _cubeSizeFillPercent = 0.85f;
 
         [Header("Tower Rules")]
         [Tooltip("Max horizontal offset as fraction of cube size (0.5 = 50%)")]
@@ -31,7 +33,7 @@ namespace CubeGame
 
         public int CubeCount => _cubeSprites != null ? _cubeSprites.Length : 0;
         public IReadOnlyList<Sprite> CubeSprites => _cubeSprites;
-        public float CubeUISize => _cubeUISize;
+        public float CubeSizeFillPercent => _cubeSizeFillPercent;
         public float MaxHorizontalOffsetPercent => _maxHorizontalOffsetPercent;
         public float DropTolerance => _dropTolerance;
         public bool EnableSave => _enableSave;

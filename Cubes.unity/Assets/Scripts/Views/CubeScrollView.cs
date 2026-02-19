@@ -4,10 +4,6 @@ using Zenject;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// Manages the bottom scroll panel with cube items.
-    /// Populates cubes from config at initialization.
-    /// </summary>
     public class CubeScrollView : MonoBehaviour
     {
         [SerializeField] private ScrollRect _scrollRect;
@@ -16,8 +12,19 @@ namespace CubeGame
         [SerializeField] private float _spacing = 10f;
 
         [Inject] private IGameConfig _config;
+        [Inject] private CubeSizeProvider _cubeSizeProvider;
 
         private GameController _gameController;
+
+        public float PanelHeight
+        {
+            get
+            {
+                if (_scrollRect.viewport != null)
+                    return _scrollRect.viewport.rect.height;
+                return ((RectTransform)transform).rect.height;
+            }
+        }
 
         public void Initialize(GameController controller)
         {
@@ -33,7 +40,7 @@ namespace CubeGame
                 Destroy(child.gameObject);
             }
 
-            float size = _config.CubeUISize;
+            float size = _cubeSizeProvider.Size;
             int count = _config.CubeCount;
             float totalWidth = count * size + Mathf.Max(0, count - 1) * _spacing;
             _content.sizeDelta = new Vector2(totalWidth, _content.sizeDelta.y);

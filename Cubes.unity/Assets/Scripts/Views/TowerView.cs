@@ -5,11 +5,6 @@ using Zenject;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// Manages the visual representation of the tower in the right zone.
-    /// Does not subscribe to model changes — the controller drives updates explicitly
-    /// so animations can be managed properly.
-    /// </summary>
     public class TowerView : MonoBehaviour
     {
         [SerializeField] private RectTransform _towerZone;
@@ -19,9 +14,12 @@ namespace CubeGame
         [Inject] private TowerModel _model;
         [Inject] private IGameConfig _config;
         [Inject] private CubeAnimationService _animService;
+        [Inject] private CubeSizeProvider _cubeSizeProvider;
 
         private readonly List<TowerCubeView> _cubeViews = new List<TowerCubeView>();
         private GameController _gameController;
+
+        private float CubeSize => _cubeSizeProvider.Size;
 
         public RectTransform TowerZone => _towerZone;
         public RectTransform BuildZone => _buildZone;
@@ -31,17 +29,13 @@ namespace CubeGame
             _gameController = controller;
         }
 
-        /// <summary>
-        /// Rebuild all tower visuals from model state (used on load).
-        /// </summary>
         public void RebuildFromModel()
         {
             ClearViews();
 
-            float cubeSize = _config.CubeUISize;
+            float cubeSize = CubeSize;
             Vector2 towerBase = _model.TowerBase.Value;
 
-            // Clamp base X in case aspect ratio changed since last save
             float halfWidth = _buildZone.rect.width * 0.5f;
             float halfCube = cubeSize * 0.5f;
             towerBase.x = Mathf.Clamp(towerBase.x, -halfWidth + halfCube, halfWidth - halfCube);
@@ -51,19 +45,12 @@ namespace CubeGame
                 CreateCubeView(i, _model.GetCube(i), false);
         }
 
-        /// <summary>
-        /// Add a visual cube on top of the tower with bounce animation.
-        /// </summary>
         public TowerCubeView AddCubeVisual(CubeData data)
         {
             int index = _cubeViews.Count;
             return CreateCubeView(index, data, true);
         }
 
-        /// <summary>
-        /// Remove a cube visual, destroy it, and animate remaining cubes collapsing down.
-        /// Call this AFTER the model has been updated.
-        /// </summary>
         public void RemoveCubeVisual(int towerIndex)
         {
             if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
@@ -77,11 +64,6 @@ namespace CubeGame
             CollapseFrom(towerIndex);
         }
 
-        /// <summary>
-        /// Pick up a cube: hide it, remove from list, collapse remaining.
-        /// Does NOT destroy the GameObject so drag events keep working.
-        /// Call this AFTER the model has been updated.
-        /// </summary>
         public void PickUpCubeVisual(int towerIndex)
         {
             if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
@@ -96,7 +78,7 @@ namespace CubeGame
 
         private void CollapseFrom(int fromIndex)
         {
-            float cubeSize = _config.CubeUISize;
+            float cubeSize = CubeSize;
             Vector2 towerBase = _model.TowerBase.Value;
 
             for (int i = fromIndex; i < _cubeViews.Count; i++)
@@ -118,7 +100,7 @@ namespace CubeGame
             if (_cubeViews.Count == 0) return false;
 
             Vector2 towerCoords = ScreenToTowerCoords(screenPos, cam);
-            float cubeSize = _config.CubeUISize;
+            float cubeSize = CubeSize;
             float topCubeX = GetTopCubeX();
             float tolerance = cubeSize * _config.DropTolerance;
 
@@ -150,10 +132,6 @@ namespace CubeGame
             return _model.TowerBase.Value.x + _model.GetCube(_model.Count - 1).HorizontalOffset;
         }
 
-        /// <summary>
-        /// Convert screen position to tower coordinate system
-        /// where Y=0 is at the bottom of the container.
-        /// </summary>
         public Vector2 ScreenToTowerCoords(Vector2 screenPos, Camera cam)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
@@ -165,7 +143,7 @@ namespace CubeGame
 
         private TowerCubeView CreateCubeView(int index, CubeData data, bool animate)
         {
-            float cubeSize = _config.CubeUISize;
+            float cubeSize = CubeSize;
             Vector2 towerBase = _model.TowerBase.Value;
 
             var go = Instantiate(_towerCubePrefab, _buildZone);

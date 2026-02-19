@@ -7,16 +7,21 @@ namespace CubeGame
         private readonly TowerModel _model;
         private readonly IGameConfig _config;
         private readonly IMessageService _messageService;
+        private readonly CubeSizeProvider _cubeSizeProvider;
         private int _nextCubeId;
 
         public bool IsEmpty => _model.Count == 0;
         public int CubeCount => _model.Count;
 
-        public TowerService(TowerModel model, IGameConfig config, IMessageService messageService)
+        private float CubeSize => _cubeSizeProvider.Size;
+
+        public TowerService(TowerModel model, IGameConfig config,
+            IMessageService messageService, CubeSizeProvider cubeSizeProvider)
         {
             _model = model;
             _config = config;
             _messageService = messageService;
+            _cubeSizeProvider = cubeSizeProvider;
             _nextCubeId = _model.GetNextId();
         }
 
@@ -27,7 +32,7 @@ namespace CubeGame
 
         public CubeData PlaceCube(int colorIndex, float dropOffsetX)
         {
-            float maxOffset = _config.CubeUISize * _config.MaxHorizontalOffsetPercent;
+            float maxOffset = CubeSize * _config.MaxHorizontalOffsetPercent;
 
             float newAbsoluteOffset;
             if (_model.Count == 0)
@@ -61,7 +66,7 @@ namespace CubeGame
             {
                 float firstAboveOffset = _model.GetCube(towerIndex).HorizontalOffset;
                 float gap = firstAboveOffset - belowOffset;
-                float maxOff = _config.CubeUISize * _config.MaxHorizontalOffsetPercent;
+                float maxOff = CubeSize * _config.MaxHorizontalOffsetPercent;
                 float clampedGap = Mathf.Clamp(gap, -maxOff, maxOff);
                 float shift = gap - clampedGap;
 

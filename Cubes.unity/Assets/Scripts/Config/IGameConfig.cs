@@ -8,7 +8,7 @@ namespace CubeGame
     {
         int CubeCount { get; }
         IReadOnlyList<Sprite> CubeSprites { get; }
-        float CubeUISize { get; }
+        float CubeSizeFillPercent { get; }
         float MaxHorizontalOffsetPercent { get; }
         float DropTolerance { get; }
         bool EnableSave { get; }

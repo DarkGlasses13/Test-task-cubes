@@ -6,10 +6,6 @@ using Zenject;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// Main game orchestrator. Coordinates drag & drop between views and services.
-    /// References scene objects via SerializeField; services injected via Zenject.
-    /// </summary>
     public class GameController : MonoBehaviour
     {
         [Header("Scene References")]
@@ -24,17 +20,23 @@ namespace CubeGame
         [Inject] private IGameConfig _config;
         [Inject] private IMessageService _messageService;
         [Inject] private CubeAnimationService _animService;
+        [Inject] private CubeSizeProvider _cubeSizeProvider;
 
         private Camera _uiCamera;
         private int _pickedColorIndex;
         private Sprite _pickedSprite;
         private GameObject _pickedCubeGO;
 
+        private float CubeSize => _cubeSizeProvider.Size;
+
         private void Start()
         {
             _uiCamera = _canvas.renderMode == RenderMode.ScreenSpaceOverlay
                 ? null
                 : _canvas.worldCamera;
+
+            Canvas.ForceUpdateCanvases();
+            _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _config.CubeSizeFillPercent);
 
             _dragProxy.Initialize(_canvas, _uiCamera);
 
@@ -52,7 +54,7 @@ namespace CubeGame
 
         public void OnScrollCubeDragStarted(CubeItemView cube, PointerEventData e)
         {
-            _dragProxy.BeginDrag(cube.Sprite, cube.ColorIndex, _config.CubeUISize, e.position);
+            _dragProxy.BeginDrag(cube.Sprite, cube.ColorIndex, CubeSize, e.position);
         }
 
         public void OnScrollCubeDragging(CubeItemView cube, PointerEventData e)
@@ -74,7 +76,7 @@ namespace CubeGame
                 return;
             }
 
-            float cubeSize = _config.CubeUISize;
+            float cubeSize = CubeSize;
 
             if (!_towerService.CanAddMore(_towerView.GetZoneHeight(), cubeSize))
             {
@@ -124,7 +126,7 @@ namespace CubeGame
 
             _dragProxy.BeginTowerDrag(
                 _pickedSprite, _pickedColorIndex, towerIndex,
-                _config.CubeUISize, e.position);
+                CubeSize, e.position);
         }
 
         public void OnTowerCubeDragging(TowerCubeView cube, PointerEventData e)
@@ -146,7 +148,7 @@ namespace CubeGame
             else if (_towerView.IsDropOnTower(dropPos, _uiCamera)
                      && !_towerService.IsEmpty
                      && _towerView.IsDropOnTopCube(dropPos, _uiCamera)
-                     && _towerService.CanAddMore(_towerView.GetZoneHeight(), _config.CubeUISize))
+                     && _towerService.CanAddMore(_towerView.GetZoneHeight(), CubeSize))
             {
                 Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
                 float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
@@ -158,10 +160,10 @@ namespace CubeGame
             {
                 Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _uiCamera);
                 float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
-                float halfCube = _config.CubeUISize * 0.5f;
+                float halfCube = CubeSize * 0.5f;
                 float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
 
-                _towerService.SetTowerBase(new Vector2(baseX, _config.CubeUISize * 0.5f));
+                _towerService.SetTowerBase(new Vector2(baseX, CubeSize * 0.5f));
                 var data = _towerService.PlaceCube(_pickedColorIndex, 0f);
                 _towerView.AddCubeVisual(data);
                 SaveIfEnabled();
@@ -207,7 +209,7 @@ namespace CubeGame
 
             img.sprite = sprite;
             img.raycastTarget = false;
-            rt.sizeDelta = new Vector2(_config.CubeUISize, _config.CubeUISize);
+            rt.sizeDelta = new Vector2(CubeSize, CubeSize);
 
             RectTransformUtility.ScreenPointToLocalPointInRectangle(
                 _canvas.transform as RectTransform, screenPos, _uiCamera, out Vector2 localPoint);
@@ -234,7 +236,7 @@ namespace CubeGame
 
             img.sprite = sprite;
             img.raycastTarget = false;
-            rt.sizeDelta = new Vector2(_config.CubeUISize, _config.CubeUISize);
+            rt.sizeDelta = new Vector2(CubeSize, CubeSize);
 
             var canvasRect = _canvas.transform as RectTransform;
 
