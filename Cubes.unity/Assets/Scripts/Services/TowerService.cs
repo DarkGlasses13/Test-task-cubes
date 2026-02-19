@@ -57,7 +57,7 @@ namespace CubeGame
 
             _model.RemoveCubeAt(towerIndex);
 
-            if (towerIndex < _model.Count)
+            if (towerIndex > 0 && towerIndex < _model.Count)
             {
                 float firstAboveOffset = _model.GetCube(towerIndex).HorizontalOffset;
                 float gap = firstAboveOffset - belowOffset;
