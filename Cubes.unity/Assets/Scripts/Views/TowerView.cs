@@ -7,100 +7,98 @@ namespace CubeGame
 {
     public class TowerView : MonoBehaviour
     {
-        [SerializeField] private RectTransform _towerZone;
+        [SerializeField] private RectTransform _zone;
         [SerializeField] private RectTransform _buildZone;
-        [SerializeField] private GameObject _towerCubePrefab;
-
-        [Inject] private TowerModel _model;
-        [Inject] private IGameConfig _config;
-        [Inject] private CubeAnimationService _animService;
-        [Inject] private CubeSizeProvider _cubeSizeProvider;
-
-        private readonly List<TowerCubeView> _cubeViews = new List<TowerCubeView>();
-        private GameController _gameController;
-
-        private float CubeSize => _cubeSizeProvider.Size;
-
-        public RectTransform TowerZone => _towerZone;
+        [SerializeField] private TowerCubeView _cubePrefab;
+        private IGameConfig _config;
+        private CubeSizeProvider _cubeSizeProvider;
+        private CubeAnimationService _animService;
+        private TowerModel _model;
+        private readonly List<TowerCubeView> _cubes = new();
         public RectTransform BuildZone => _buildZone;
+        public IReadOnlyList<TowerCubeView> Cubes => _cubes;
 
-        public void Initialize(GameController controller)
+        [Inject]
+        public void Construct
+        (
+            IGameConfig config,
+            CubeSizeProvider sizeProvider,
+            CubeAnimationService animService,
+            TowerModel  model
+        )
         {
-            _gameController = controller;
+            _config = config;
+            _cubeSizeProvider = sizeProvider;
+            _animService = animService;
+            _model = model;
         }
 
         public void RebuildFromModel()
         {
-            ClearViews();
-
-            float cubeSize = CubeSize;
+            ClearCubes();
+            float cubeSize = _cubeSizeProvider.Size;
             Vector2 towerBase = _model.TowerBase.Value;
-
             float halfWidth = _buildZone.rect.width * 0.5f;
             float halfCube = cubeSize * 0.5f;
             towerBase.x = Mathf.Clamp(towerBase.x, -halfWidth + halfCube, halfWidth - halfCube);
             _model.SetTowerBase(towerBase);
 
             for (int i = 0; i < _model.Count; i++)
-                CreateCubeView(i, _model.GetCube(i), false);
+                CreateCube(i, _model.GetCube(i), false);
         }
 
-        public TowerCubeView AddCubeVisual(CubeData data)
+        public TowerCubeView AddCube(CubeData data)
         {
-            int index = _cubeViews.Count;
-            return CreateCubeView(index, data, true);
+            int index = _cubes.Count;
+            return CreateCube(index, data, true);
         }
 
-        public void RemoveCubeVisual(int towerIndex)
+        public void RemoveCube(int towerIndex)
         {
-            if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
-
-            var removed = _cubeViews[towerIndex];
-            _cubeViews.RemoveAt(towerIndex);
-            removed.RectTransform.DOKill();
-            removed.gameObject.SetActive(false);
-            Destroy(removed.gameObject);
-
-            CollapseFrom(towerIndex);
+            var removed = PickUpCube(towerIndex);
+            
+            if (removed != null)
+                Destroy(removed.gameObject);
         }
 
-        public void PickUpCubeVisual(int towerIndex)
+        public TowerCubeView PickUpCube(int towerIndex)
         {
-            if (towerIndex < 0 || towerIndex >= _cubeViews.Count) return;
+            if (towerIndex < 0 || towerIndex >= _cubes.Count) 
+                return null;
 
-            var picked = _cubeViews[towerIndex];
+            var picked = _cubes[towerIndex];
             picked.RectTransform.DOKill();
             picked.SetVisible(false);
-            _cubeViews.RemoveAt(towerIndex);
-
+            _cubes.RemoveAt(towerIndex);
             CollapseFrom(towerIndex);
+            return picked;
         }
 
         private void CollapseFrom(int fromIndex)
         {
-            float cubeSize = CubeSize;
+            float cubeSize = _cubeSizeProvider.Size;
             Vector2 towerBase = _model.TowerBase.Value;
 
-            for (int i = fromIndex; i < _cubeViews.Count; i++)
+            for (int i = fromIndex; i < _cubes.Count; i++)
             {
-                _cubeViews[i].TowerIndex = i;
+                _cubes[i].TowerIndex = i;
                 float targetX = towerBase.x + _model.GetCube(i).HorizontalOffset;
                 float targetY = cubeSize * 0.5f + i * cubeSize;
-                _animService.PlayCollapse(_cubeViews[i].RectTransform, targetX, targetY);
+                _animService.PlayCollapse(_cubes[i].RectTransform, targetX, targetY);
             }
         }
 
         public bool IsDropOnTower(Vector2 screenPos, Camera cam)
         {
-            return RectTransformUtility.RectangleContainsScreenPoint(_towerZone, screenPos, cam);
+            return RectTransformUtility.RectangleContainsScreenPoint(_zone, screenPos, cam);
         }
 
         public bool IsDropOnTopCube(Vector2 screenPos, Camera cam)
         {
-            if (_cubeViews.Count == 0) return false;
+            if (_cubes.Count == 0) return false;
 
             Vector2 towerCoords = ScreenToTowerCoords(screenPos, cam);
-            float cubeSize = CubeSize;
+            float cubeSize = _cubeSizeProvider.Size;
             float topCubeX = GetTopCubeX();
             float tolerance = cubeSize * _config.DropTolerance;
 
@@ -114,15 +112,9 @@ namespace CubeGame
             return true;
         }
 
-        public float GetZoneHeight()
-        {
-            return _buildZone.rect.height;
-        }
+        public float GetZoneHeight() => _buildZone.rect.height;
 
-        public float GetTowerBaseX()
-        {
-            return _model.TowerBase.Value.x;
-        }
+        public float GetBaseX() => _model.TowerBase.Value.x;
 
         public float GetTopCubeX()
         {
@@ -134,42 +126,34 @@ namespace CubeGame
 
         public Vector2 ScreenToTowerCoords(Vector2 screenPos, Camera cam)
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _buildZone, screenPos, cam, out Vector2 localPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle
+            (
+                _buildZone,
+                screenPos,
+                cam,
+                out Vector2 localPoint
+            );
 
             Rect r = _buildZone.rect;
             return new Vector2(localPoint.x - r.center.x, localPoint.y - r.yMin);
         }
 
-        private TowerCubeView CreateCubeView(int index, CubeData data, bool animate)
+        private TowerCubeView CreateCube(int index, CubeData data, bool animate)
         {
-            float cubeSize = CubeSize;
+            float cubeSize = _cubeSizeProvider.Size;
             Vector2 towerBase = _model.TowerBase.Value;
-
-            var go = Instantiate(_towerCubePrefab, _buildZone);
-            var rt = go.GetComponent<RectTransform>();
-
+            var instance = Instantiate(_cubePrefab, _buildZone);
+            var rt = instance.GetComponent<RectTransform>();
             rt.anchorMin = new Vector2(0.5f, 0f);
             rt.anchorMax = new Vector2(0.5f, 0f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(cubeSize, cubeSize);
-
             float x = towerBase.x + data.HorizontalOffset;
             float y = cubeSize * 0.5f + index * cubeSize;
             rt.anchoredPosition = new Vector2(x, y);
-
-            var cubeView = go.GetComponent<TowerCubeView>();
-            cubeView.Setup(
-                index,
-                data.ColorIndex,
-                _config.CubeSprites[data.ColorIndex],
-                cubeSize,
-                _gameController.OnTowerCubeDragStarted,
-                _gameController.OnTowerCubeDragging,
-                _gameController.OnTowerCubeDragEnded
-            );
-
-            _cubeViews.Add(cubeView);
+            var cubeView = instance.GetComponent<TowerCubeView>();
+            cubeView.Setup(index, data.ColorIndex, _config.CubeSprites[data.ColorIndex], cubeSize);
+            _cubes.Add(cubeView);
 
             if (animate)
                 _animService.PlayBounce(rt);
@@ -177,16 +161,16 @@ namespace CubeGame
             return cubeView;
         }
 
-        private void ClearViews()
+        private void ClearCubes()
         {
-            foreach (var view in _cubeViews)
+            foreach (var view in _cubes)
             {
                 if (view == null) continue;
                 view.RectTransform.DOKill();
                 view.gameObject.SetActive(false);
                 Destroy(view.gameObject);
             }
-            _cubeViews.Clear();
+            _cubes.Clear();
         }
     }
 }

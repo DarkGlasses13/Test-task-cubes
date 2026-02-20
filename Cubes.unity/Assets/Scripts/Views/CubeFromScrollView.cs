@@ -1,43 +1,39 @@
 using System;
+using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// A cube in the bottom scroll panel.
-    /// Distinguishes horizontal scroll from vertical (upward) cube drag.
-    /// </summary>
     [RequireComponent(typeof(Image))]
-    public class CubeItemView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+    public class CubeFromScrollView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private Image _image;
         private ScrollRect _scrollRect;
         private bool _isDraggingCube;
+        private readonly Subject<PointerEventData> _dragStarted = new();
+        private readonly Subject<PointerEventData> _dragging = new();
+        private readonly Subject<PointerEventData> _dragEnded = new();
 
-        private Action<CubeItemView, PointerEventData> _onDragStarted;
-        private Action<CubeItemView, PointerEventData> _onDragging;
-        private Action<CubeItemView, PointerEventData> _onDragEnded;
+        public IObservable<PointerEventData> DragStarted => _dragStarted;
+        public IObservable<PointerEventData> Dragging => _dragging;
+        public IObservable<PointerEventData> DragEnded => _dragEnded;
 
         public int ColorIndex { get; private set; }
         public Sprite Sprite => _image != null ? _image.sprite : null;
 
-        public void Setup(
+        public void Setup
+        (
             int colorIndex,
             Sprite sprite,
-            ScrollRect scrollRect,
-            Action<CubeItemView, PointerEventData> onDragStarted,
-            Action<CubeItemView, PointerEventData> onDragging,
-            Action<CubeItemView, PointerEventData> onDragEnded)
+            ScrollRect scrollRect
+        )
         {
             ColorIndex = colorIndex;
-            _image = GetComponent<Image>();
+            _image ??= GetComponent<Image>();
             _image.sprite = sprite;
             _scrollRect = scrollRect;
-            _onDragStarted = onDragStarted;
-            _onDragging = onDragging;
-            _onDragEnded = onDragEnded;
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -50,7 +46,7 @@ namespace CubeGame
             {
                 _isDraggingCube = true;
                 _scrollRect.velocity = Vector2.zero;
-                _onDragStarted?.Invoke(this, eventData);
+                _dragStarted.OnNext(eventData);
             }
             else
             {
@@ -62,7 +58,9 @@ namespace CubeGame
         public void OnDrag(PointerEventData eventData)
         {
             if (_isDraggingCube)
-                _onDragging?.Invoke(this, eventData);
+            {
+                _dragging.OnNext(eventData);
+            }
             else
                 _scrollRect.OnDrag(eventData);
         }
@@ -70,7 +68,9 @@ namespace CubeGame
         public void OnEndDrag(PointerEventData eventData)
         {
             if (_isDraggingCube)
-                _onDragEnded?.Invoke(this, eventData);
+            {
+                _dragEnded.OnNext(eventData);
+            }
             else
                 _scrollRect.OnEndDrag(eventData);
         }

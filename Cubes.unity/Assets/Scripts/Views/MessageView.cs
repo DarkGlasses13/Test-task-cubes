@@ -6,17 +6,22 @@ using Zenject;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// Displays status messages above the bottom panel.
-    /// Subscribes to MessageService and fades messages out after a delay.
-    /// </summary>
+    [RequireComponent(typeof(TextMeshProUGUI), typeof(CanvasGroup))]
     public class MessageView : MonoBehaviour
     {
         [SerializeField] private TextMeshProUGUI _text;
         [SerializeField] private CanvasGroup _canvasGroup;
+        private IMessageService _messageService;
+        private CubeAnimationService _animService;
 
-        [Inject] private IMessageService _messageService;
-        [Inject] private CubeAnimationService _animService;
+        [Inject]
+        public void Construct(IMessageService  messageService, CubeAnimationService animService)
+        {
+            _text = GetComponent<TextMeshProUGUI>();
+            _canvasGroup = GetComponent<CanvasGroup>();
+            _messageService = messageService;
+            _animService = animService;
+        }
 
         private void Start()
         {

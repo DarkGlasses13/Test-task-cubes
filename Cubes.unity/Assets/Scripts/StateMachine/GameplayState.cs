@@ -3,30 +3,45 @@ using UnityEngine;
 
 namespace CubeGame
 {
-    public class GameplayState : IGameState
+    public class GameplayState : GameStateBase
     {
         private readonly CubeSizeProvider _cubeSizeProvider;
         private readonly IGameConfig _config;
-        private readonly GameController _gameController;
         private readonly CubeScrollView _scrollView;
+        private readonly TowerView _towerView;
+        private readonly CubeScrollView _cubeScrollView;
+        private readonly GameController _gameController;
 
-        public GameplayState(CubeSizeProvider cubeSizeProvider, IGameConfig config,
-            GameController gameController, CubeScrollView scrollView)
+        public GameplayState
+        (
+            IGameStateSwitcher switcher,
+            CubeSizeProvider cubeSizeProvider,
+            IGameConfig config,
+            CubeScrollView scrollView,
+            TowerView towerView,
+            CubeScrollView cubeScrollView,
+            GameController gameController
+            
+        ) : base(switcher)
         {
             _cubeSizeProvider = cubeSizeProvider;
             _config = config;
-            _gameController = gameController;
             _scrollView = scrollView;
+            _towerView = towerView;
+            _cubeScrollView = cubeScrollView;
+            _gameController = gameController;
         }
 
-        public UniTask Enter()
+        public override async UniTask Enter()
         {
             Canvas.ForceUpdateCanvases();
             _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _config.CubeSizeFillPercent);
-            _gameController.Initialize();
-            return UniTask.CompletedTask;
+            _cubeScrollView.PopulateCubes();
+            _towerView.RebuildFromModel();
+            _gameController.BindView();
+            await UniTask.CompletedTask;
         }
 
-        public void Exit() { }
+        public override UniTask Exit() => UniTask.CompletedTask;
     }
 }

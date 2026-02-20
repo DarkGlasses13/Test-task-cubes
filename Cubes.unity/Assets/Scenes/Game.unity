@@ -177,7 +177,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scrollRect: {fileID: 243933687}
   _content: {fileID: 365624784}
-  _cubeItemPrefab: {fileID: 3222484950263950858, guid: 93cf7187c8db90143a199df75ce30bc2, type: 3}
+  _prefab: {fileID: 6670444915311750199, guid: 93cf7187c8db90143a199df75ce30bc2, type: 3}
   _spacing: 30
 --- !u!114 &243933687
 MonoBehaviour:
@@ -815,7 +815,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d56c84b4b494738429457cce419aee67, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _image: {fileID: 990924162}
 --- !u!114 &990924162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1403,9 +1402,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88b7c16efb2e3454c9d97d8f9881b6ec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _towerZone: {fileID: 1966116250}
+  _zone: {fileID: 1966116250}
   _buildZone: {fileID: 928393786}
-  _towerCubePrefab: {fileID: 253886574943043117, guid: 27c37d07adf99ad459a7ec4a37795553, type: 3}
+  _cubePrefab: {fileID: 5066688119855968268, guid: 27c37d07adf99ad459a7ec4a37795553, type: 3}
 --- !u!114 &1966116252
 MonoBehaviour:
   m_ObjectHideFlags: 0

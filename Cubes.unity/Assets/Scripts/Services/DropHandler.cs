@@ -15,8 +15,14 @@ namespace CubeGame
             _cubeSizeProvider = cubeSizeProvider;
         }
 
-        public DropResult Resolve(Vector2 screenPos, Camera cam,
-            TowerView tower, HoleView hole, bool checkHole)
+        public DropResult Resolve
+        (
+            Vector2 screenPos,
+            Camera cam,
+            TowerView tower,
+            HoleView hole,
+            bool checkHole
+        )
         {
             if (checkHole && hole.IsInsideHole(screenPos, cam))
                 return DropResult.Hole;

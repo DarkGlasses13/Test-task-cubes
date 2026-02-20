@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Zenject;
 
 namespace CubeGame
@@ -8,18 +9,27 @@ namespace CubeGame
         private readonly LoadingState _loadingState;
         private readonly GameplayState _gameplayState;
 
-        public GameBootstrap(GameStateMachine stateMachine, LoadingState loadingState,
-            GameplayState gameplayState)
+        public GameBootstrap
+        (
+            GameStateMachine stateMachine,
+            LoadingState loadingState,
+            GameplayState gameplayState
+        )
         {
             _stateMachine = stateMachine;
             _loadingState = loadingState;
             _gameplayState = gameplayState;
         }
 
-        public async void Initialize()
+        public void Initialize() => Run().Forget();
+
+        private async UniTaskVoid Run()
         {
-            await _stateMachine.TransitionTo(_loadingState);
-            await _stateMachine.TransitionTo(_gameplayState);
+            _stateMachine
+                .RegisterState(_loadingState)
+                .RegisterState(_gameplayState);
+
+            await _stateMachine.Enter<LoadingState>();
         }
     }
 }

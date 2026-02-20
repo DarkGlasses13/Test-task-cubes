@@ -1,16 +1,13 @@
 using UnityEngine;
 using UnityEngine.UI;
+using Zenject;
 
 namespace CubeGame
 {
-    /// <summary>
-    /// Floating cube that follows the pointer during drag.
-    /// Lives under Canvas root so it renders on top of everything.
-    /// </summary>
+    [RequireComponent(typeof(Image))]
     public class DragProxyView : MonoBehaviour
     {
-        [SerializeField] private Image _image;
-
+        private Image _image;
         private RectTransform _rectTransform;
         private RectTransform _canvasRect;
         private Camera _camera;
@@ -21,12 +18,13 @@ namespace CubeGame
         public int TowerIndex { get; private set; } = -1;
         public bool IsTowerCube => TowerIndex >= 0;
 
-        public void Initialize(Canvas canvas, Camera camera)
+        [Inject]
+        public void Construct(Canvas canvas, Camera playerCamera)
         {
             _canvasRect = canvas.transform as RectTransform;
-            _camera = camera;
+            _camera = playerCamera;
             _rectTransform = GetComponent<RectTransform>();
-            if (_image == null) _image = GetComponent<Image>();
+            _image = GetComponent<Image>();
             gameObject.SetActive(false);
         }
 
@@ -56,8 +54,14 @@ namespace CubeGame
 
         public void UpdatePosition(Vector2 screenPos)
         {
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                _canvasRect, screenPos, _camera, out Vector2 localPoint);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle
+            (
+                _canvasRect,
+                screenPos,
+                _camera,
+                out Vector2 localPoint
+            );
+            
             _rectTransform.anchoredPosition = localPoint;
         }
 

@@ -36,7 +36,7 @@ MonoBehaviour:
   _cubeSizeFillPercent: 0.6
   _maxHorizontalOffsetPercent: 0.5
   _dropTolerance: 1.5
-  _enableSave: 1
+  _enableSave: 0
   _msgCubePlaced:
     m_TableReference:
       m_TableCollectionName: GUID:179e91fed046d6545ac9202575038fee

@@ -5,6 +5,6 @@ namespace CubeGame
     public interface IGameState
     {
         UniTask Enter();
-        void Exit();
+        UniTask Exit();
     }
 }

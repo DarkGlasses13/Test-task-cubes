@@ -10,10 +10,15 @@ namespace CubeGame
             target.DOKill();
             float startY = target.anchoredPosition.y;
             var seq = DOTween.Sequence().SetTarget(target);
-            seq.Append(target.DOAnchorPosY(startY + bounceHeight, duration * 0.35f)
+            
+            seq
+                .Append(target.DOAnchorPosY(startY + bounceHeight, duration * 0.35f)
                 .SetEase(Ease.OutQuad));
-            seq.Append(target.DOAnchorPosY(startY, duration * 0.65f)
+            
+            seq
+                .Append(target.DOAnchorPosY(startY, duration * 0.65f)
                 .SetEase(Ease.OutBounce));
+            
             return seq;
         }
 
@@ -21,7 +26,9 @@ namespace CubeGame
         {
             target.DOKill();
             var cg = target.GetComponent<CanvasGroup>();
-            if (cg == null) cg = target.gameObject.AddComponent<CanvasGroup>();
+            
+            if (cg == null) 
+                cg = target.gameObject.AddComponent<CanvasGroup>();
 
             var seq = DOTween.Sequence().SetTarget(target);
             seq.Join(target.DOScale(Vector3.zero, duration).SetEase(Ease.InBack));
@@ -34,7 +41,9 @@ namespace CubeGame
         {
             target.DOKill();
             var cg = target.GetComponent<CanvasGroup>();
-            if (cg == null) cg = target.gameObject.AddComponent<CanvasGroup>();
+            
+            if (cg == null) 
+                cg = target.gameObject.AddComponent<CanvasGroup>();
 
             var seq = DOTween.Sequence().SetTarget(target);
             seq.Join(target.DOAnchorPos(holeLocalPos, duration).SetEase(Ease.InQuad));
