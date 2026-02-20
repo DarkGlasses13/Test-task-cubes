@@ -204,8 +204,7 @@ namespace CubeGame
             if (rt != null) 
                 rt.DOKill();
                 
-            _towerCubeDisposables[_pickedTowerCubeView].Dispose();
-            _towerCubeDisposables.Remove(_pickedTowerCubeView);
+            UnbindTowerCube(_pickedTowerCubeView);
             _pickedTowerCubeView.gameObject.SetActive(false);
             Object.Destroy(_pickedTowerCubeView.gameObject);
             _pickedTowerCubeView = null;
