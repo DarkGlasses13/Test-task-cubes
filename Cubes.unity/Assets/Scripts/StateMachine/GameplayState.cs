@@ -7,6 +7,7 @@ namespace CubeGame
     {
         private readonly CubeSizeProvider _cubeSizeProvider;
         private readonly IGameConfig _config;
+        private readonly HoleView _holeView;
         private readonly CubeScrollView _scrollView;
         private readonly TowerView _towerView;
         private readonly CubeScrollView _cubeScrollView;
@@ -17,6 +18,7 @@ namespace CubeGame
             IGameStateSwitcher switcher,
             CubeSizeProvider cubeSizeProvider,
             IGameConfig config,
+            HoleView holeView,
             CubeScrollView scrollView,
             TowerView towerView,
             CubeScrollView cubeScrollView,
@@ -26,6 +28,7 @@ namespace CubeGame
         {
             _cubeSizeProvider = cubeSizeProvider;
             _config = config;
+            _holeView = holeView;
             _scrollView = scrollView;
             _towerView = towerView;
             _cubeScrollView = cubeScrollView;
@@ -35,6 +38,7 @@ namespace CubeGame
         public override async UniTask Enter()
         {
             Canvas.ForceUpdateCanvases();
+            _holeView.Construct();
             _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _config.CubeSizeFillPercent);
             _cubeScrollView.PopulateCubes();
             _towerView.RebuildFromModel();

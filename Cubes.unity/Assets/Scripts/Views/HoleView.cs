@@ -5,7 +5,7 @@ namespace CubeGame
     [RequireComponent(typeof(RectTransform))]
     public class HoleView : MonoBehaviour
     {
-        [SerializeField] private RectTransform _holeRect;
+        private RectTransform _holeRect;
 
         public RectTransform HoleRect => _holeRect;
 
