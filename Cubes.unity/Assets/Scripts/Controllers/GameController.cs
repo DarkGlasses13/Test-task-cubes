@@ -287,7 +287,7 @@ namespace CubeGame
                 data.HorizontalOffset,
                 data.Place,
                 sprite,
-                animate: false
+                animate: true
             );
             
             BindTowerCubeView(data, view);
