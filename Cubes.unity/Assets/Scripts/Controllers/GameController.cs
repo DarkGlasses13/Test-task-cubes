@@ -211,7 +211,7 @@ namespace CubeGame
         
             var pickedTowerCube = _towerCubesMap[place];
             _pickedTowerCube = (pickedTowerCube.Data, pickedTowerCube.View);
-            RemoveCube(_pickedTowerCube.Data.Place, withMessage: true);
+            RemoveCubeFromModel(_pickedTowerCube.Data.Place, withMessage: true);
             _pickedTowerCube.View.RectTransform.DOKill();
             _pickedTowerCube.View.SetVisible(false);
             _towerCubesMap.RemoveAt(_pickedTowerCube.Data.Place);
@@ -279,7 +279,7 @@ namespace CubeGame
             float halfCube = _cubeSizeProvider.Size * 0.5f;
             float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
             SetTowerBase(new Vector2(baseX, _cubeSizeProvider.Size * 0.5f));
-            var data = PlaceCube(id, 0f);
+            var data = PlaceCubeInModel(id, 0f);
             
             var view = _towerView.CreateCube
             (
@@ -298,7 +298,7 @@ namespace CubeGame
         {
             Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _canvas.worldCamera);
             float dropOffsetX = towerCoords.x - _towerModel.GetTopCubeX();
-            var data = PlaceCube(id, dropOffsetX);
+            var data = PlaceCubeInModel(id, dropOffsetX);
             
             var view = _towerView.CreateCube
             (
@@ -350,13 +350,13 @@ namespace CubeGame
             if (checkHole && _holeView.IsInsideHole(screenPos, _canvas.worldCamera))
                 return DropResult.Hole;
 
-            if (!_towerView.IsDropOnTower(screenPos, _canvas.worldCamera))
+            if (_towerView.IsDropOnTower(screenPos, _canvas.worldCamera) == false)
                 return DropResult.Miss;
 
             if (_towerModel.Cubes.Count == 0)
                 return DropResult.PlaceFirst;
 
-            if (!CanAddMore(_towerView.GetZoneHeight(), _cubeSizeProvider.Size))
+            if (CanAddMore(_towerView.GetZoneHeight(), _cubeSizeProvider.Size) == false)
                 return DropResult.TowerFull;
 
             if (IsDropOnTopCube(screenPos, _canvas.worldCamera))
@@ -367,7 +367,7 @@ namespace CubeGame
         
         private bool CanAddMore(float zoneHeight, float cubeSize) => (_towerModel.Cubes.Count + 1) * cubeSize <= zoneHeight;
 
-        private CubeInTowerData PlaceCube(string id, float dropOffsetX)
+        private CubeInTowerData PlaceCubeInModel(string id, float dropOffsetX)
         {
             float maxOffset = _cubeSizeProvider.Size * _gameplayConfigProvider.Get().MaxHorizontalOffsetPercent;
 
@@ -397,7 +397,7 @@ namespace CubeGame
             return cubeData;
         }
 
-        private void RemoveCube(int place, bool withMessage = false)
+        private void RemoveCubeFromModel(int place, bool withMessage = false)
         {
             if (place < 0 || place >= _towerModel.Cubes.Count) return;
 
