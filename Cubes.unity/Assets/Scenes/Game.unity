@@ -177,7 +177,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _scrollRect: {fileID: 243933687}
   _content: {fileID: 365624784}
-  _prefab: {fileID: 3735488088459097578, guid: f9dec505408f50445afd0be99c7fdc9e, type: 3}
+  _availableCubePrefab: {fileID: 3735488088459097578, guid: f9dec505408f50445afd0be99c7fdc9e, type: 3}
   _spacing: 30
 --- !u!114 &243933687
 MonoBehaviour:
@@ -735,7 +735,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e977894f2a7786e499cc57edf8562e90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gameConfig: {fileID: 11400000, guid: e717212ab8cce6c48a33c967ff392c37, type: 2}
   _canvas: {fileID: 1535782969}
   _towerView: {fileID: 1966116251}
   _holeView: {fileID: 378055803}

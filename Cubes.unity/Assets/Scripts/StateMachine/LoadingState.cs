@@ -1,3 +1,4 @@
+using AssetProvider;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -5,29 +6,38 @@ namespace CubeGame
 {
     public class LoadingState : GameStateBase
     {
-        private readonly IConfigProvider _configProvider;
-        private readonly GameConfigHolder _configHolder;
+        private readonly ICubeSpritesProvider _cubeSpritesProvider;
+        private readonly IGameplayConfigProvider _configProvider;
+        private readonly ICubeConfigsProvider _cubeConfigsProvider;
+        private readonly IMessagesConfigProvider _messagesConfigProvider;
         private readonly ISaveService _saveService;
         private readonly Canvas _canvas;
 
         public LoadingState
         (
             IGameStateSwitcher switcher,
-            IConfigProvider configProvider,
-            GameConfigHolder configHolder,
+            ICubeSpritesProvider cubeSpritesProvider,
+            IGameplayConfigProvider configProvider,
+            ICubeConfigsProvider cubeConfigsProvider,
+            IMessagesConfigProvider messagesConfigProvider,
             ISaveService saveService
             
         ) : base(switcher)
         {
+            _cubeSpritesProvider = cubeSpritesProvider;
             _configProvider = configProvider;
-            _configHolder = configHolder;
+            _cubeConfigsProvider = cubeConfigsProvider;
+            _messagesConfigProvider = messagesConfigProvider;
             _saveService = saveService;
         }
 
         public override async UniTask Enter()
         {
-            var config = await _configProvider.LoadConfigAsync();
-            _configHolder.SetConfig(config);
+            await _cubeSpritesProvider.LoadAsync();
+            await _configProvider.LoadAsync();
+            await _cubeConfigsProvider.LoadAsync();
+            await _messagesConfigProvider.LoadAsync();
+            var config = _configProvider.Get();
 
             if (config.EnableSave)
             {

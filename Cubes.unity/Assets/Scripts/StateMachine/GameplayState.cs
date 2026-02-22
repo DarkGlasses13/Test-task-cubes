@@ -1,3 +1,4 @@
+using AssetProvider;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -6,42 +7,45 @@ namespace CubeGame
     public class GameplayState : GameStateBase
     {
         private readonly CubeSizeProvider _cubeSizeProvider;
-        private readonly IGameConfig _config;
+        private readonly IGameplayConfigProvider _gameplayConfigProvider;
+        private readonly AvailableCubesModel _availableCubesModel;
         private readonly HoleView _holeView;
-        private readonly CubeScrollView _scrollView;
+        private readonly AvailableCubesView _scrollView;
         private readonly TowerView _towerView;
-        private readonly CubeScrollView _cubeScrollView;
+        private readonly AvailableCubesView _availableCubesView;
         private readonly GameController _gameController;
 
         public GameplayState
         (
             IGameStateSwitcher switcher,
             CubeSizeProvider cubeSizeProvider,
-            IGameConfig config,
+            IGameplayConfigProvider gameplayConfigProvider,
+            AvailableCubesModel availableCubesModel,
             HoleView holeView,
-            CubeScrollView scrollView,
+            AvailableCubesView scrollView,
             TowerView towerView,
-            CubeScrollView cubeScrollView,
+            AvailableCubesView availableCubesView,
             GameController gameController
             
         ) : base(switcher)
         {
             _cubeSizeProvider = cubeSizeProvider;
-            _config = config;
+            _gameplayConfigProvider = gameplayConfigProvider;
+            _availableCubesModel = availableCubesModel;
             _holeView = holeView;
             _scrollView = scrollView;
             _towerView = towerView;
-            _cubeScrollView = cubeScrollView;
+            _availableCubesView = availableCubesView;
             _gameController = gameController;
         }
 
         public override async UniTask Enter()
         {
+            _availableCubesModel.Populate(_gameplayConfigProvider.Get().AvailableCubes);
             Canvas.ForceUpdateCanvases();
             _holeView.Construct();
-            _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _config.CubeSizeFillPercent);
-            _cubeScrollView.PopulateCubes();
-            _towerView.RebuildFromModel();
+            _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _gameplayConfigProvider.Get().CubeSizeFillPercent);
+            // _towerView.RebuildFromModel();
             _gameController.BindView();
             await UniTask.CompletedTask;
         }

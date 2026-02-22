@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
@@ -7,70 +6,61 @@ namespace CubeGame
 {
     public class TowerModel
     {
-        private readonly List<CubeData> _cubes = new List<CubeData>();
-        private readonly ReactiveProperty<Vector2> _towerBase = new ReactiveProperty<Vector2>(Vector2.zero);
-        private readonly Subject<Unit> _onChanged = new Subject<Unit>();
+        private readonly ReactiveCollection<CubeInTowerData> _cubes = new();
+        private readonly ReactiveProperty<Vector2> _basePosition = new(Vector2.zero);
+        
+        public IReadOnlyReactiveCollection<CubeInTowerData>  Cubes => _cubes;
+        public IReadOnlyReactiveProperty<Vector2> BasePosition => _basePosition;
 
-        public IObservable<Unit> OnChanged => _onChanged;
-        public IReadOnlyReactiveProperty<Vector2> TowerBase => _towerBase;
-        public int Count => _cubes.Count;
+        public CubeInTowerData GetCube(int index) => _cubes[index];
 
-        public CubeData GetCube(int index) => _cubes[index];
+        public void SetCube(int place, CubeInTowerData data) => _cubes[place] = data;
 
-        public void SetCube(int index, CubeData data) => _cubes[index] = data;
+        public void AddCube(CubeInTowerData cube) => _cubes.Add(cube);
 
-        public void AddCube(CubeData cube)
+        public void RemoveCubeAt(int place)
         {
-            _cubes.Add(cube);
-            _onChanged.OnNext(Unit.Default);
-        }
-
-        public void RemoveCubeAt(int index)
-        {
-            if (index >= 0 && index < _cubes.Count)
+            if (place >= 0 && place < _cubes.Count)
             {
-                _cubes.RemoveAt(index);
-                _onChanged.OnNext(Unit.Default);
+                _cubes.RemoveAt(place);
             }
         }
 
-        public void SetTowerBase(Vector2 pos) => _towerBase.Value = pos;
+        public void SetBase(Vector2 pos) => _basePosition.Value = pos;
+        
+        public float GetTopCubeX()
+        {
+            if (Cubes.Count == 0)
+                return BasePosition.Value.x;
+        
+            return BasePosition.Value.x + GetCube(Cubes.Count - 1).HorizontalOffset;
+        }
 
         public void Clear()
         {
             _cubes.Clear();
-            _towerBase.Value = Vector2.zero;
-            _onChanged.OnNext(Unit.Default);
+            _basePosition.Value = Vector2.zero;
         }
 
         public TowerState ToState()
         {
             return new TowerState
             {
-                TowerBaseX = _towerBase.Value.x,
-                TowerBaseY = _towerBase.Value.y,
-                Cubes = new List<CubeData>(_cubes)
+                BaseX = _basePosition.Value.x,
+                BaseY = _basePosition.Value.y,
+                Cubes = new List<CubeInTowerData>(_cubes)
             };
         }
 
         public void LoadState(TowerState state)
         {
             _cubes.Clear();
+            
             if (state?.Cubes != null)
-                _cubes.AddRange(state.Cubes);
-            _towerBase.Value = new Vector2(state?.TowerBaseX ?? 0f, state?.TowerBaseY ?? 0f);
-            _onChanged.OnNext(Unit.Default);
-        }
-
-        public int GetNextId()
-        {
-            int maxId = -1;
-            for (int i = 0; i < _cubes.Count; i++)
-            {
-                if (_cubes[i].Id > maxId)
-                    maxId = _cubes[i].Id;
-            }
-            return maxId + 1;
+                foreach (var cubeInTowerData in state.Cubes)
+                    _cubes.Add(cubeInTowerData);
+            
+            _basePosition.Value = new Vector2(state?.BaseX ?? 0f, state?.BaseY ?? 0f);
         }
     }
 }

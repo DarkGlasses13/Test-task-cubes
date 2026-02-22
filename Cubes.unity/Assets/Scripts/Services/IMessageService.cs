@@ -6,6 +6,6 @@ namespace CubeGame
     public interface IMessageService
     {
         IObservable<string> OnMessage { get; }
-        void ShowMessage(LocalizedString localizedString);
+        void ShowMessage(string tableReference, string tableEntryReference);
     }
 }

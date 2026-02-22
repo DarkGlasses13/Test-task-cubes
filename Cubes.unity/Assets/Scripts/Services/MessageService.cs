@@ -10,10 +10,16 @@ namespace CubeGame
 
         public IObservable<string> OnMessage => _messageSubject;
 
-        public void ShowMessage(LocalizedString localizedString)
+        public void ShowMessage(string tableReference, string tableEntryReference)
         {
-            if (localizedString == null || localizedString.IsEmpty)
+            if (string.IsNullOrEmpty(tableReference) || string.IsNullOrEmpty(tableEntryReference))
                 return;
+
+            var localizedString = new LocalizedString
+            {
+                TableReference = tableReference,
+                TableEntryReference = tableEntryReference
+            };
 
             var handle = localizedString.GetLocalizedStringAsync();
 

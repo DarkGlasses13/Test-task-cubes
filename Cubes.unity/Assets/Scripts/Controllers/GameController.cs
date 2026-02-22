@@ -1,62 +1,72 @@
 using System;
 using System.Collections.Generic;
+using AssetProvider;
 using DG.Tweening;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Object = UnityEngine.Object;
 
 namespace CubeGame
 {
     public class GameController : IDisposable
     {
-        private readonly ITowerService _towerService;
+        private readonly AvailableCubesModel _availableCubesModel;
+        private readonly TowerModel _towerModel;
+        private readonly ICubeConfigsProvider _cubeConfigsProvider;
         private readonly ISaveService _saveService;
-        private readonly IGameConfig _config;
+        private readonly IGameplayConfigProvider _gameplayConfigProvider;
+        private readonly IMessagesConfigProvider _messagesConfigProvider;
         private readonly IMessageService _messageService;
         private readonly Canvas _canvas;
         private readonly CubeSizeProvider _cubeSizeProvider;
-        private readonly DropHandler _dropHandler;
         private readonly CubeEffectsService _effectsService;
-        private readonly CubeScrollView _cubeScrollView;
+        private readonly AvailableCubesView _availableCubesView;
         private readonly TowerView _towerView;
         private readonly HoleView _holeView;
         private readonly DragProxyView _dragProxyView;
-        private TowerCubeView _pickedTowerCubeView;
-        private readonly Dictionary<CubeFromScrollView, CompositeDisposable> _scrollCubeDisposables = new();
-        private readonly Dictionary<TowerCubeView, CompositeDisposable> _towerCubeDisposables = new();
+        private readonly ICubeSpritesProvider _cubeSpritesProvider;
+        private readonly CubeAnimationService _cubeAnimationService;
+        private readonly List<(string, AvailableCubeView, CompositeDisposable)> _availableCubesMap = new();
+        private readonly List<(CubeInTowerData Data, TowerCubeView View, CompositeDisposable Disposable)> _towerCubesMap = new();
+        private (CubeInTowerData Data, TowerCubeView View) _pickedTowerCube;
         private CompositeDisposable _disposables;
-
-        private float CubeSize => _cubeSizeProvider.Size;
 
         public GameController
         (
-            ITowerService towerService,
+            AvailableCubesModel availableCubesModel,
+            TowerModel towerModel,
+            ICubeConfigsProvider cubeConfigsProvider,
             ISaveService saveService,
-            IGameConfig config,
+            IGameplayConfigProvider gameplayConfigProvider,
+            IMessagesConfigProvider messagesConfigProvider,
             IMessageService messageService,
             Canvas canvas,
             CubeSizeProvider cubeSizeProvider,
-            DropHandler dropHandler,
             CubeEffectsService effectsService,
-            CubeScrollView cubeScrollView,
+            AvailableCubesView availableCubesView,
             TowerView towerView,
             HoleView holeView,
-            DragProxyView dragProxyView
+            DragProxyView dragProxyView,
+            ICubeSpritesProvider cubeSpritesProvider,
+            CubeAnimationService cubeAnimationService
         )
         {
-            _towerService = towerService;
+            _availableCubesModel = availableCubesModel;
+            _towerModel = towerModel;
+            _cubeConfigsProvider = cubeConfigsProvider;
             _saveService = saveService;
-            _config = config;
+            _gameplayConfigProvider = gameplayConfigProvider;
+            _messagesConfigProvider = messagesConfigProvider;
             _messageService = messageService;
             _canvas = canvas;
             _cubeSizeProvider = cubeSizeProvider;
-            _dropHandler = dropHandler;
             _effectsService = effectsService;
-            _cubeScrollView = cubeScrollView;
+            _availableCubesView = availableCubesView;
             _towerView = towerView;
             _holeView = holeView;
             _dragProxyView = dragProxyView;
+            _cubeSpritesProvider = cubeSpritesProvider;
+            _cubeAnimationService = cubeAnimationService;
         }
 
         public void BindView()
@@ -64,33 +74,66 @@ namespace CubeGame
             _disposables?.Dispose();
             _disposables = new CompositeDisposable();
             
-            foreach (var cube in _cubeScrollView.Cubes)
+            BindAvailableCubes();
+            BindTower();
+        }
+
+        private void BindTower()
+        {
+            foreach (var cubeData in _towerModel.Cubes)
             {
-                BindScrollCube(cube);
+                var cubeConfig = _cubeConfigsProvider.Get(cubeData.Id);
+                
+                if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
+                {
+                    var cubeView = _towerView.CreateCube
+                    (
+                        _towerModel.BasePosition.Value,
+                        cubeData.HorizontalOffset,
+                        cubeData.Place,
+                        _cubeSpritesProvider.Get(spriteIndex),
+                        animate: false
+                    );
+                    
+                    BindTowerCubeView(cubeData, cubeView);
+                }
             }
-            
-            foreach (var cube in _towerView.Cubes)
+        }
+
+        private void BindAvailableCubes()
+        {
+            foreach (var availableCubeId in _availableCubesModel.AvailableCubes)
             {
-                BindTowerCube(cube);
+                var cubeConfig = _cubeConfigsProvider.Get(availableCubeId);
+
+                if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
+                {
+                    var cubeView = _availableCubesView.CreateCube(_cubeSpritesProvider.Get(spriteIndex));
+                    BindAvailableCubeView(availableCubeId, cubeView);
+                }
             }
 
-            _cubeScrollView.Cubes
+            _availableCubesModel.AvailableCubes
                 .ObserveAdd()
-                .Subscribe(add => BindScrollCube(add.Value))
-                .AddTo(_disposables);
+                .Subscribe(add =>
+                {
+                    var view = _availableCubesView.CreateCube(_cubeSpritesProvider.Get(add.Value));
+                    BindAvailableCubeView(add.Value, view);
+                    
+                }).AddTo(_disposables);
 
-            _cubeScrollView.Cubes
+            _availableCubesModel.AvailableCubes
                 .ObserveRemove()
-                .Subscribe(remove => UnbindScrollCube(remove.Value))
+                .Subscribe(remove => UnbindAvailableCube(remove.Value))
                 .AddTo(_disposables);
         }
 
-        private void BindScrollCube(CubeFromScrollView view)
+        private void BindAvailableCubeView(string id, AvailableCubeView view)
         {
             var cubeDisposables = new CompositeDisposable();
                     
             view.DragStarted
-                .Subscribe(pointerEventData => OnScrollCubeDragStarted(view, pointerEventData))
+                .Subscribe(pointerEventData => OnAvailableCubeDragStarted(view, pointerEventData))
                 .AddTo(cubeDisposables);
                     
             view.Dragging
@@ -98,27 +141,30 @@ namespace CubeGame
                 .AddTo(cubeDisposables);
                     
             view.DragEnded
-                .Subscribe(pointerEventData => OnScrollCubeDragEnded(view, pointerEventData))
+                .Subscribe(pointerEventData => OnAvailableCubeDragEnded(id, view, pointerEventData))
                 .AddTo(cubeDisposables);
-                    
-            _scrollCubeDisposables[view] = cubeDisposables;
+            
+            _availableCubesMap.Add((id, view, cubeDisposables));
         }
 
-        private void UnbindScrollCube(CubeFromScrollView view)
+        private void UnbindAvailableCube(string id)
         {
-            if (_scrollCubeDisposables.TryGetValue(view, out var disposables))
+            var index = _availableCubesMap.FindIndex(bind => bind.Item1 == id);
+
+            if (index >= 0)
             {
-                disposables?.Dispose();
-                _scrollCubeDisposables.Remove(view);
+                var availableCube = _availableCubesMap[index];
+                availableCube.Item3?.Dispose();
+                _availableCubesMap.RemoveAt(index);
             }
         }
 
-        private void BindTowerCube(TowerCubeView view)
+        private void BindTowerCubeView(CubeInTowerData data, TowerCubeView view)
         {
             var cubeDisposables = new CompositeDisposable();
                     
             view.DragStarted
-                .Subscribe(pointerEventData => OnTowerCubeDragStarted(view, pointerEventData))
+                .Subscribe(pointerEventData => OnTowerCubeDragStarted(data.Place, pointerEventData))
                 .AddTo(cubeDisposables);
                     
             view.Dragging
@@ -128,143 +174,289 @@ namespace CubeGame
             view.DragEnded
                 .Subscribe(OnTowerCubeDragEnded)
                 .AddTo(cubeDisposables);
-                    
-            _towerCubeDisposables[view] = cubeDisposables;
+            
+            _towerCubesMap.Add((data, view, cubeDisposables));
         }
 
-        private void UnbindTowerCube(TowerCubeView view)
+        private void UnbindTowerCube(CubeInTowerData data)
         {
-            if (_towerCubeDisposables.TryGetValue(view, out var disposables))
+            var index = _towerCubesMap.FindIndex(bind => bind.Item1.Id == data.Id);
+
+            if (index >= 0)
             {
-                disposables?.Dispose();
-                _towerCubeDisposables.Remove(view);
+                var towerCube = _towerCubesMap[index];
+                towerCube.Item3?.Dispose();
+                _towerCubesMap.RemoveAt(index);
             }
         }
 
-        public void OnScrollCubeDragStarted(CubeFromScrollView view, PointerEventData pointerEventData)
+        public void OnAvailableCubeDragStarted(AvailableCubeView view, PointerEventData pointerEventData)
         {
-            _dragProxyView.BeginDrag(view.Sprite, view.ColorIndex, CubeSize, pointerEventData.position);
+            _dragProxyView.BeginDrag(view.Sprite, _cubeSizeProvider.Size, pointerEventData.position);
         }
 
         public void OnCubeDragging(PointerEventData pointerEventData) => _dragProxyView.UpdatePosition(pointerEventData.position);
 
-        public void OnScrollCubeDragEnded(CubeFromScrollView view, PointerEventData pointerEventData)
+        public void OnAvailableCubeDragEnded(string id, AvailableCubeView view, PointerEventData pointerEventData)
         {
-            Vector2 dropPos = pointerEventData.position;
-            Sprite sprite = view.Sprite;
-            int colorIndex = view.ColorIndex;
             _dragProxyView.EndDrag();
-
-            var result = _dropHandler.Resolve
-            (
-                dropPos,
-                _canvas.worldCamera,
-                _towerView,
-                _holeView,
-                checkHole: false
-            );
-            
-            HandleDropResult(result, dropPos, sprite, colorIndex);
+            var result = ResolveDrop(pointerEventData.position, checkHole: false);
+            HandleDropResult(result, id, pointerEventData.position, view.Sprite);
         }
 
-        public void OnTowerCubeDragStarted(TowerCubeView view, PointerEventData pointerEventData)
+        public void OnTowerCubeDragStarted(int place, PointerEventData pointerEventData)
         {
-            _pickedTowerCubeView  = view;
-            _towerService.RemoveCube(_pickedTowerCubeView.TowerIndex, silent: true);
-            _towerView.PickUpCube(_pickedTowerCubeView.TowerIndex);
-
-            _dragProxyView.BeginTowerDrag
+            if (place < 0 || place >= _towerCubesMap.Count) 
+                return;
+        
+            var pickedTowerCube = _towerCubesMap[place];
+            _pickedTowerCube = (pickedTowerCube.Data, pickedTowerCube.View);
+            RemoveCube(_pickedTowerCube.Data.Place, withMessage: true);
+            _pickedTowerCube.View.RectTransform.DOKill();
+            _pickedTowerCube.View.SetVisible(false);
+            _towerCubesMap.RemoveAt(_pickedTowerCube.Data.Place);
+            CollapseFrom(_pickedTowerCube.Data.Place);
+        
+            _dragProxyView.BeginDrag
             (
-                _pickedTowerCubeView.Sprite,
-                _pickedTowerCubeView.ColorIndex,
-                _pickedTowerCubeView.TowerIndex,
-                CubeSize,
+                _pickedTowerCube.View.Sprite,
+                _cubeSizeProvider.Size,
                 pointerEventData.position
             );
         }
 
         public void OnTowerCubeDragEnded(PointerEventData pointerEventData)
         {
-            Vector2 dropPos = pointerEventData.position;
             _dragProxyView.EndDrag();
-
-            var result = _dropHandler.Resolve
+            var result = ResolveDrop(pointerEventData.position, checkHole: true);
+            
+            HandleDropResult
             (
-                dropPos,
-                _canvas.worldCamera,
-                _towerView, 
-                _holeView,
-                checkHole: true
+                result,
+                _pickedTowerCube.Data.Id,
+                pointerEventData.position,
+                _pickedTowerCube.View.Sprite
             );
             
-            HandleDropResult(result, dropPos, _pickedTowerCubeView.Sprite, _pickedTowerCubeView.ColorIndex);
-
-            var rt = _pickedTowerCubeView.RectTransform;
-                
-            if (rt != null) 
-                rt.DOKill();
-                
-            UnbindTowerCube(_pickedTowerCubeView);
-            _pickedTowerCubeView.gameObject.SetActive(false);
-            Object.Destroy(_pickedTowerCubeView.gameObject);
-            _pickedTowerCubeView = null;
+            _pickedTowerCube = default;
         }
 
-        private void HandleDropResult(DropResult result, Vector2 dropPos, Sprite sprite, int colorIndex)
+        private void HandleDropResult(DropResult result, string id, Vector2 dropPos, Sprite sprite)
         {
             switch (result)
             {
                 case DropResult.PlaceFirst:
-                    PlaceFirstCube(dropPos, colorIndex);
+                    PlaceFirstCube(id, dropPos, sprite);
                     break;
 
                 case DropResult.PlaceOnTop:
-                    PlaceOnTop(dropPos, colorIndex);
+                    PlaceOnTop(id, dropPos, sprite);
                     break;
-
+                
                 case DropResult.Hole:
-                    _messageService.ShowMessage(_config.MsgCubeRemoved);
+                    var messagesConfig = _messagesConfigProvider.Get();
+                    _messageService.ShowMessage(messagesConfig.TableReference, messagesConfig.MsgCubeRemoved);
                     _effectsService.PlayHoleSwallow(dropPos, sprite);
                     SaveIfEnabled();
                     break;
-
+                
                 case DropResult.TowerFull:
-                    _towerService.NotifyTowerFull();
+                    NotifyTowerFull();
                     _effectsService.PlayMiss(dropPos, sprite);
                     break;
-
+                
                 case DropResult.Miss:
-                    _towerService.NotifyMiss();
+                    NotifyMiss();
                     _effectsService.PlayMiss(dropPos, sprite);
                     break;
             }
         }
 
-        private void PlaceFirstCube(Vector2 dropPos, int colorIndex)
+        private void PlaceFirstCube(string id, Vector2 dropPos, Sprite sprite)
         {
-            float cubeSize = CubeSize;
             Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _canvas.worldCamera);
             float halfWidth = _towerView.BuildZone.rect.width * 0.5f;
-            float halfCube = cubeSize * 0.5f;
+            float halfCube = _cubeSizeProvider.Size * 0.5f;
             float baseX = Mathf.Clamp(towerCoords.x, -halfWidth + halfCube, halfWidth - halfCube);
-            _towerService.SetTowerBase(new Vector2(baseX, cubeSize * 0.5f));
-            var data = _towerService.PlaceCube(colorIndex, 0f);
-            BindTowerCube(_towerView.AddCube(data));
+            SetTowerBase(new Vector2(baseX, _cubeSizeProvider.Size * 0.5f));
+            var data = PlaceCube(id, 0f);
+            
+            var view = _towerView.CreateCube
+            (
+                _towerModel.BasePosition.Value,
+                data.HorizontalOffset,
+                data.Place,
+                sprite,
+                animate: false
+            );
+            
+            BindTowerCubeView(data, view);
             SaveIfEnabled();
         }
 
-        private void PlaceOnTop(Vector2 dropPos, int colorIndex)
+        private void PlaceOnTop(string id, Vector2 dropPos, Sprite sprite)
         {
             Vector2 towerCoords = _towerView.ScreenToTowerCoords(dropPos, _canvas.worldCamera);
-            float dropOffsetX = towerCoords.x - _towerView.GetTopCubeX();
-            var data = _towerService.PlaceCube(colorIndex, dropOffsetX);
-            BindTowerCube(_towerView.AddCube(data));
+            float dropOffsetX = towerCoords.x - _towerModel.GetTopCubeX();
+            var data = PlaceCube(id, dropOffsetX);
+            
+            var view = _towerView.CreateCube
+            (
+                _towerModel.BasePosition.Value,
+                data.HorizontalOffset,
+                data.Place,
+                sprite,
+                animate: true
+            );
+            
+            BindTowerCubeView(data, view);
             SaveIfEnabled();
+        }
+
+        private void CollapseFrom(int fromPlace)
+        {
+            float cubeSize = _cubeSizeProvider.Size;
+            Vector2 towerBase = _towerModel.BasePosition.Value;
+        
+            for (int i = fromPlace; i < _towerCubesMap.Count; i++)
+            {
+                float targetX = towerBase.x + _towerModel.GetCube(i).HorizontalOffset;
+                float targetY = cubeSize * 0.5f + i * cubeSize;
+                _cubeAnimationService.PlayCollapse(_towerCubesMap[i].View.RectTransform, targetX, targetY);
+            }
+        }
+        
+        public bool IsDropOnTopCube(Vector2 screenPos, Camera cam)
+        {
+            if (_towerCubesMap.Count == 0) return false;
+        
+            Vector2 towerCoords = _towerView.ScreenToTowerCoords(screenPos, cam);
+            float cubeSize = _cubeSizeProvider.Size;
+            float topCubeX = _towerModel.GetTopCubeX();
+            float tolerance = cubeSize * _gameplayConfigProvider.Get().DropTolerance;
+        
+            if (Mathf.Abs(towerCoords.x - topCubeX) > tolerance)
+                return false;
+        
+            float newCubeCenter = cubeSize * 0.5f + _towerModel.Cubes.Count * cubeSize;
+            if (towerCoords.y < newCubeCenter)
+                return false;
+        
+            return true;
+        }
+        
+        public DropResult ResolveDrop(Vector2 screenPos, bool checkHole)
+        {
+            if (checkHole && _holeView.IsInsideHole(screenPos, _canvas.worldCamera))
+                return DropResult.Hole;
+
+            if (!_towerView.IsDropOnTower(screenPos, _canvas.worldCamera))
+                return DropResult.Miss;
+
+            if (_towerModel.Cubes.Count == 0)
+                return DropResult.PlaceFirst;
+
+            if (!CanAddMore(_towerView.GetZoneHeight(), _cubeSizeProvider.Size))
+                return DropResult.TowerFull;
+
+            if (IsDropOnTopCube(screenPos, _canvas.worldCamera))
+                return DropResult.PlaceOnTop;
+
+            return DropResult.Miss;
+        }
+        
+        private bool CanAddMore(float zoneHeight, float cubeSize) => (_towerModel.Cubes.Count + 1) * cubeSize <= zoneHeight;
+
+        private CubeInTowerData PlaceCube(string id, float dropOffsetX)
+        {
+            float maxOffset = _cubeSizeProvider.Size * _gameplayConfigProvider.Get().MaxHorizontalOffsetPercent;
+
+            float newAbsoluteOffset;
+            
+            if (_towerModel.Cubes.Count == 0)
+            {
+                newAbsoluteOffset = 0f;
+            }
+            else
+            {
+                float topOffset = _towerModel.GetCube(_towerModel.Cubes.Count - 1).HorizontalOffset;
+                float clampedRelative = Mathf.Clamp(dropOffsetX, -maxOffset, maxOffset);
+                newAbsoluteOffset = topOffset + clampedRelative;
+            }
+
+            var cubeData = new CubeInTowerData()
+            {
+                Id = id,
+                Place = _towerModel.Cubes.Count,
+                HorizontalOffset = newAbsoluteOffset
+            };
+            
+            _towerModel.AddCube(cubeData);
+            var messageConfig = _messagesConfigProvider.Get();
+            _messageService.ShowMessage(messageConfig.TableReference, messageConfig.MsgCubePlaced);
+            return cubeData;
+        }
+
+        private void RemoveCube(int place, bool withMessage = false)
+        {
+            if (place < 0 || place >= _towerModel.Cubes.Count) return;
+
+            float belowOffset = place > 0
+                ? _towerModel.GetCube(place - 1).HorizontalOffset
+                : 0f;
+
+            _towerModel.RemoveCubeAt(place);
+
+            for (int i = place; i < _towerModel.Cubes.Count; i++)
+            {
+                var cube = _towerModel.GetCube(i);
+                cube.Place = i;
+                _towerModel.SetCube(i, cube);
+            }
+
+            if (place > 0 && place < _towerModel.Cubes.Count)
+            {
+                float firstAboveOffset = _towerModel.GetCube(place).HorizontalOffset;
+                float gap = firstAboveOffset - belowOffset;
+                float maxOff = _cubeSizeProvider.Size * _gameplayConfigProvider.Get().MaxHorizontalOffsetPercent;
+                float clampedGap = Mathf.Clamp(gap, -maxOff, maxOff);
+                float shift = gap - clampedGap;
+
+                if (Mathf.Abs(shift) > 0.001f)
+                {
+                    for (int i = place; i < _towerModel.Cubes.Count; i++)
+                    {
+                        var cube = _towerModel.GetCube(i);
+                        cube.HorizontalOffset -= shift;
+                        _towerModel.SetCube(i, cube);
+                    }
+                }
+            }
+
+            if (!withMessage)
+            {
+                var messageConfig = _messagesConfigProvider.Get();
+                _messageService.ShowMessage(messageConfig.TableReference, messageConfig.MsgCubeRemoved);
+            }
+        }
+
+        private void SetTowerBase(Vector2 localPosition) => _towerModel.SetBase(localPosition);
+
+        private void NotifyMiss()
+        {
+            var messageConfig = _messagesConfigProvider.Get();
+            _messageService.ShowMessage(messageConfig.TableReference, messageConfig.MsgCubeMissed);
+        }
+
+        private void NotifyTowerFull()
+        {
+            var messageConfig = _messagesConfigProvider.Get();
+            _messageService.ShowMessage(messageConfig.TableReference, messageConfig.MsgTowerFull);
         }
 
         private void SaveIfEnabled()
         {
-            if (_config.EnableSave)
+            if (_gameplayConfigProvider.Get().EnableSave)
                 _saveService.Save();
         }
 

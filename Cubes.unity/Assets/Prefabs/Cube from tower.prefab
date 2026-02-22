@@ -98,6 +98,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 6201976896600080764}
+    - targetCorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 5850890815856299421}
   m_SourcePrefab: {fileID: 100100000, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
 --- !u!1 &7429035193765521825 stripped
@@ -105,6 +108,18 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
   m_PrefabInstance: {fileID: 5449827071142561707}
   m_PrefabAsset: {fileID: 0}
+--- !u!225 &6201976896600080764
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7429035193765521825}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!114 &5850890815856299421
 MonoBehaviour:
   m_ObjectHideFlags: 0

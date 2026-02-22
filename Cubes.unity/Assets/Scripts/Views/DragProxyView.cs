@@ -12,12 +12,6 @@ namespace CubeGame
         private RectTransform _canvasRect;
         private Camera _camera;
 
-        public RectTransform RectTransform => _rectTransform;
-        public Sprite CurrentSprite => _image != null ? _image.sprite : null;
-        public int ColorIndex { get; private set; }
-        public int TowerIndex { get; private set; } = -1;
-        public bool IsTowerCube => TowerIndex >= 0;
-
         [Inject]
         public void Construct(Canvas canvas, Camera playerCamera)
         {
@@ -28,28 +22,16 @@ namespace CubeGame
             gameObject.SetActive(false);
         }
 
-        public void BeginDrag(Sprite sprite, int colorIndex, float size, Vector2 screenPos)
-        {
-            ColorIndex = colorIndex;
-            TowerIndex = -1;
-            Setup(sprite, size, screenPos);
-        }
-
-        public void BeginTowerDrag(Sprite sprite, int colorIndex, int towerIndex, float size, Vector2 screenPos)
-        {
-            ColorIndex = colorIndex;
-            TowerIndex = towerIndex;
-            Setup(sprite, size, screenPos);
-        }
+        public void BeginDrag(Sprite sprite, float size, Vector2 screenPos) => Setup(sprite, size, screenPos);
 
         private void Setup(Sprite sprite, float size, Vector2 screenPos)
         {
             _image.sprite = sprite;
             _image.raycastTarget = false;
             _rectTransform.sizeDelta = new Vector2(size, size);
-            gameObject.SetActive(true);
             transform.SetAsLastSibling();
             UpdatePosition(screenPos);
+            gameObject.SetActive(true);
         }
 
         public void UpdatePosition(Vector2 screenPos)
