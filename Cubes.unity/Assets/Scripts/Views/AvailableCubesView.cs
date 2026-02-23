@@ -35,7 +35,7 @@ namespace CubeGame
             _cubeSizeProvider = cubeSizeProvider;
         }
         
-        public AvailableCubeView CreateCube(Sprite sprite)
+        public AvailableCubeView CreateCube(string id, Sprite sprite)
         {
             float size = _cubeSizeProvider.Size;
             var instance = Instantiate(_availableCubePrefab, _content);
@@ -46,7 +46,7 @@ namespace CubeGame
             rt.sizeDelta = new Vector2(size, size);
             rt.anchoredPosition = new Vector2(_spacing + _cubes.Count * (size + _spacing) + size * 0.5f, 0f);
             var cubeView = instance.GetComponent<AvailableCubeView>();
-            cubeView.Setup(sprite, _scrollRect);
+            cubeView.Setup(id, sprite, _scrollRect);
             _cubes.Add(cubeView);
             int count = _cubes.Count;
             float totalWidth = _spacing + count * size + Mathf.Max(0, count - 1) * _spacing + _spacing;

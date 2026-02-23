@@ -1,6 +1,5 @@
 using AssetProvider;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Zenject;
 
 namespace CubeGame
@@ -10,7 +9,7 @@ namespace CubeGame
         [SerializeField] private Canvas _canvas;
         [SerializeField] private TowerView _towerView;
         [SerializeField] private HoleView _holeView;
-        [SerializeField] private AvailableCubesView _scrollView;
+        [SerializeField] private AvailableCubesView _availableCubesView;
         [SerializeField] private DragProxyView _dragProxy;
 
         public override void InstallBindings()
@@ -47,15 +46,17 @@ namespace CubeGame
             Container.Bind<Camera>().FromInstance(playerCamera).AsSingle();
             Container.Bind<AvailableCubesModel>().AsSingle();
             Container.Bind<TowerModel>().AsSingle();
+            Container.Bind<ITowerService>().To<TowerService>().AsSingle();
             Container.Bind<TowerView>().FromInstance(_towerView).AsSingle();
             Container.Bind<HoleView>().FromInstance(_holeView).AsSingle();
-            Container.Bind<AvailableCubesView>().FromInstance(_scrollView).AsSingle();
+            Container.Bind<AvailableCubesView>().FromInstance(_availableCubesView).AsSingle();
             Container.Bind<DragProxyView>().FromInstance(_dragProxy).AsSingle();
             Container.Bind<ISaveService>().To<SaveService>().AsSingle();
             Container.Bind<IMessageService>().To<MessageService>().AsSingle();
             Container.Bind<CubeAnimationService>().AsSingle();
             Container.Bind<CubeSizeProvider>().AsSingle();
             Container.Bind<CubeEffectsService>().AsSingle();
+            Container.Bind<DropResolver>().AsSingle();
             Container.Bind<GameController>().AsSingle();
             Container.BindInterfacesAndSelfTo<GameStateMachine>().AsSingle();
             Container.Bind<LoadingState>().AsSingle();

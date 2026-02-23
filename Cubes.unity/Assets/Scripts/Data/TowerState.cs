@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.Serialization;
 
 namespace CubeGame
 {
@@ -8,7 +7,7 @@ namespace CubeGame
     public class TowerState
     {
         public List<CubeInTowerData> Cubes = new List<CubeInTowerData>();
-        [FormerlySerializedAs("TowerBaseX")] public float BaseX;
-        [FormerlySerializedAs("TowerBaseY")] public float BaseY;
+        public float BaseX;
+        public float BaseY;
     }
 }

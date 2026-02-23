@@ -1,6 +1,5 @@
 using AssetProvider;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace CubeGame
 {
@@ -11,7 +10,6 @@ namespace CubeGame
         private readonly ICubeConfigsProvider _cubeConfigsProvider;
         private readonly IMessagesConfigProvider _messagesConfigProvider;
         private readonly ISaveService _saveService;
-        private readonly Canvas _canvas;
 
         public LoadingState
         (

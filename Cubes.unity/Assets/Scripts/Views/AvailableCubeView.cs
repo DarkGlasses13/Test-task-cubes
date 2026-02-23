@@ -16,17 +16,20 @@ namespace CubeGame
         private readonly Subject<PointerEventData> _dragging = new();
         private readonly Subject<PointerEventData> _dragEnded = new();
 
+        public string Id { get; set; }
+        public Sprite Sprite => _image != null ? _image.sprite : null;
         public IObservable<PointerEventData> DragStarted => _dragStarted;
         public IObservable<PointerEventData> Dragging => _dragging;
         public IObservable<PointerEventData> DragEnded => _dragEnded;
-        public Sprite Sprite => _image != null ? _image.sprite : null;
 
-        public void Setup(Sprite sprite, ScrollRect scrollRect)
+        public void Setup(string id, Sprite sprite, ScrollRect scrollRect)
         {
+            Id = id;
             _image ??= GetComponent<Image>();
             _image.sprite = sprite;
             _scrollRect = scrollRect;
         }
+
 
         public void OnBeginDrag(PointerEventData eventData)
         {

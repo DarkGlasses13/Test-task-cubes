@@ -12,26 +12,44 @@ namespace CubeGame
         private RectTransform _canvasRect;
         private Camera _camera;
 
+        public RectTransform RectTransform => _rectTransform;
+        public Sprite Sprite => _image != null ? _image.sprite : null;
+        public string Id { get; private set; }
+        public int Place { get; private set; } = -1;
+        public bool IsTowerCube => Place >= 0;
+
         [Inject]
-        public void Construct(Canvas canvas, Camera playerCamera)
+        public void Construct(Canvas canvas, Camera cam)
         {
             _canvasRect = canvas.transform as RectTransform;
-            _camera = playerCamera;
+            _camera = cam;
             _rectTransform = GetComponent<RectTransform>();
             _image = GetComponent<Image>();
             gameObject.SetActive(false);
         }
 
-        public void BeginDrag(Sprite sprite, float size, Vector2 screenPos) => Setup(sprite, size, screenPos);
+        public void BeginDrag(AvailableCubeView view, float size, Vector2 screenPos)
+        {
+            Id = view.Id;
+            Place = -1;
+            Setup(view.Sprite, size, screenPos);
+        }
+
+        public void BeginDrag(TowerCubeView view, float size, Vector2 screenPos)
+        {
+            Id = view.Id;
+            Place = view.Place;
+            Setup(view.Sprite, size, screenPos);
+        }
 
         private void Setup(Sprite sprite, float size, Vector2 screenPos)
         {
             _image.sprite = sprite;
             _image.raycastTarget = false;
             _rectTransform.sizeDelta = new Vector2(size, size);
+            gameObject.SetActive(true);
             transform.SetAsLastSibling();
             UpdatePosition(screenPos);
-            gameObject.SetActive(true);
         }
 
         public void UpdatePosition(Vector2 screenPos)
@@ -47,9 +65,6 @@ namespace CubeGame
             _rectTransform.anchoredPosition = localPoint;
         }
 
-        public void EndDrag()
-        {
-            gameObject.SetActive(false);
-        }
+        public void EndDrag() => gameObject.SetActive(false);
     }
 }

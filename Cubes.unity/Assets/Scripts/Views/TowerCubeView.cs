@@ -19,15 +19,19 @@ namespace CubeGame
         public IObservable<PointerEventData> DragStarted => _dragStarted;
         public IObservable<PointerEventData> Dragging => _dragging;
         public IObservable<PointerEventData> DragEnded => _dragEnded;
-        public Sprite Sprite => _image != null ? _image.sprite : null;
+        public string Id { get; set; }
+        public int Place { get; set; }
         public RectTransform RectTransform => _rectTransform;
+        public Sprite Sprite => _image != null ? _image.sprite : null;
 
-        public void Setup(Sprite sprite, float size)
+        public void Setup(string id, int place, float size, Sprite sprite)
         {
-            _rectTransform = GetComponent<RectTransform>();
+            Id = id;
+            Place = place;
+            _rectTransform ??= GetComponent<RectTransform>();
             _rectTransform.sizeDelta = new Vector2(size, size);
-            _image = GetComponent<Image>();
-            _canvasGroup = GetComponent<CanvasGroup>();
+            _image ??= GetComponent<Image>();
+            _canvasGroup ??= GetComponent<CanvasGroup>();
             _image.sprite = sprite;
         }
 

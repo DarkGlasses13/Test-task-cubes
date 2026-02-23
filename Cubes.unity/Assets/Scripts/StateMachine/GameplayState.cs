@@ -10,8 +10,6 @@ namespace CubeGame
         private readonly IGameplayConfigProvider _gameplayConfigProvider;
         private readonly AvailableCubesModel _availableCubesModel;
         private readonly HoleView _holeView;
-        private readonly AvailableCubesView _scrollView;
-        private readonly TowerView _towerView;
         private readonly AvailableCubesView _availableCubesView;
         private readonly GameController _gameController;
 
@@ -22,8 +20,6 @@ namespace CubeGame
             IGameplayConfigProvider gameplayConfigProvider,
             AvailableCubesModel availableCubesModel,
             HoleView holeView,
-            AvailableCubesView scrollView,
-            TowerView towerView,
             AvailableCubesView availableCubesView,
             GameController gameController
             
@@ -33,8 +29,6 @@ namespace CubeGame
             _gameplayConfigProvider = gameplayConfigProvider;
             _availableCubesModel = availableCubesModel;
             _holeView = holeView;
-            _scrollView = scrollView;
-            _towerView = towerView;
             _availableCubesView = availableCubesView;
             _gameController = gameController;
         }
@@ -44,8 +38,7 @@ namespace CubeGame
             _availableCubesModel.Populate(_gameplayConfigProvider.Get().AvailableCubes);
             Canvas.ForceUpdateCanvases();
             _holeView.Construct();
-            _cubeSizeProvider.Initialize(_scrollView.PanelHeight, _gameplayConfigProvider.Get().CubeSizeFillPercent);
-            // _towerView.RebuildFromModel();
+            _cubeSizeProvider.Initialize(_availableCubesView.PanelHeight, _gameplayConfigProvider.Get().CubeSizeFillPercent);
             _gameController.BindView();
             await UniTask.CompletedTask;
         }
