@@ -60,8 +60,10 @@ namespace CubeGame
         public void LoadState(TowerState state)
         {
             _cubes.Clear();
+            
             if (state?.Cubes != null)
                 _cubes.AddRange(state.Cubes);
+            
             _base.Value = new Vector2(state?.BaseX ?? 0f, state?.BaseY ?? 0f);
             _onChanged.OnNext(Unit.Default);
         }

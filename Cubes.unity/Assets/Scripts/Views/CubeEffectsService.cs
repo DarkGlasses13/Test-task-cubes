@@ -88,7 +88,7 @@ namespace CubeGame
             
             rt.anchoredPosition = dropLocal;
             Vector3[] holeCorners = new Vector3[4];
-            _holeView.HoleRect.GetWorldCorners(holeCorners);
+            _holeView.RectTransform.GetWorldCorners(holeCorners);
             Vector2 holeCenterWorld = (holeCorners[0] + holeCorners[2]) * 0.5f;
             
             RectTransformUtility.ScreenPointToLocalPointInRectangle

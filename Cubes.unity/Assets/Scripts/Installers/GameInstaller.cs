@@ -1,5 +1,6 @@
 using AssetProvider;
 using UnityEngine;
+using UnityEngine.UI;
 using Zenject;
 
 namespace CubeGame
@@ -43,6 +44,12 @@ namespace CubeGame
                 .WithArguments("Messages config");
             
             Container.Bind<Canvas>().FromInstance(_canvas).AsSingle();
+            
+            Container
+                .Bind<CanvasScaler>()
+                .FromResolveGetter<Canvas>(canvas => canvas.GetComponent<CanvasScaler>())
+                .AsSingle();
+            
             Container.Bind<Camera>().FromInstance(playerCamera).AsSingle();
             Container.Bind<AvailableCubesModel>().AsSingle();
             Container.Bind<TowerModel>().AsSingle();

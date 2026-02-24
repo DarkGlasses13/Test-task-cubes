@@ -10,7 +10,6 @@ namespace CubeGame
         private readonly IGameplayConfigProvider _gameplayConfigProvider;
         private readonly AvailableCubesModel _availableCubesModel;
         private readonly HoleView _holeView;
-        private readonly AvailableCubesView _availableCubesView;
         private readonly GameController _gameController;
 
         public GameplayState
@@ -20,7 +19,6 @@ namespace CubeGame
             IGameplayConfigProvider gameplayConfigProvider,
             AvailableCubesModel availableCubesModel,
             HoleView holeView,
-            AvailableCubesView availableCubesView,
             GameController gameController
             
         ) : base(switcher)
@@ -29,16 +27,15 @@ namespace CubeGame
             _gameplayConfigProvider = gameplayConfigProvider;
             _availableCubesModel = availableCubesModel;
             _holeView = holeView;
-            _availableCubesView = availableCubesView;
             _gameController = gameController;
         }
 
         public override async UniTask Enter()
         {
+            _holeView.Construct();
+            _cubeSizeProvider.Initialize(_holeView.RectTransform, _gameplayConfigProvider.Get().CubeSizeFillPercent);
             _availableCubesModel.Populate(_gameplayConfigProvider.Get().AvailableCubes);
             Canvas.ForceUpdateCanvases();
-            _holeView.Construct();
-            _cubeSizeProvider.Initialize(_availableCubesView.PanelHeight, _gameplayConfigProvider.Get().CubeSizeFillPercent);
             _gameController.BindView();
             await UniTask.CompletedTask;
         }

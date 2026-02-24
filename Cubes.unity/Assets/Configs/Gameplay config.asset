@@ -34,7 +34,7 @@ MonoBehaviour:
     - cube_17
     - cube_18
     - cube_19
-    CubeSizeFillPercent: 0.6
+    CubeSizeFillPercent: 1
     MaxHorizontalOffsetPercent: 0.5
     DropTolerance: 1.25
     EnableSave: 1
