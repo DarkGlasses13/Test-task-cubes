@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using DG.Tweening;
 using UnityEngine;
 using Zenject;
@@ -10,146 +11,130 @@ namespace CubeGame
         [SerializeField] private RectTransform _zone;
         [SerializeField] private RectTransform _buildZone;
         [SerializeField] private TowerCubeView _cubePrefab;
+        private Camera _camera;
         private CubeSizeProvider _cubeSizeProvider;
         private CubeAnimationService _animationService;
         private readonly List<TowerCubeView> _cubes = new();
+        private TowerCubeView _pickedCube;
         public RectTransform BuildZone => _buildZone;
-        public IReadOnlyList<TowerCubeView> Cubes => _cubes;
 
         [Inject]
         public void Construct
         (
+            Camera cam,
             CubeSizeProvider sizeProvider,
             CubeAnimationService animationService
         )
         {
+            _camera = cam;
             _cubeSizeProvider = sizeProvider;
             _animationService = animationService;
         }
+        
+        public TowerCubeView GetCube(int place) => _cubes[place];
+        
+        public int GetPlace(TowerCubeView cube) => _cubes.IndexOf(cube);
 
-        public void RemoveCube(int from, Vector2 towerBase, IReadOnlyList<CubeInTowerData> cubesData)
+        public bool IsInTowerZone(Vector2 screenPos)
         {
-            var removed = PickUpCube(from, towerBase, cubesData);
-            
-            if (removed != null)
-                Destroy(removed.gameObject);
+            return RectTransformUtility.RectangleContainsScreenPoint(_zone, screenPos, _camera);
         }
 
-        public TowerCubeView PickUpCube(int from, Vector2 towerBase, IReadOnlyList<CubeInTowerData> cubesData)
+        public bool IsDropOnTopCube(Vector2 screenPos, float dropTolerance)
         {
-            if (from < 0 || from >= _cubes.Count) 
-                return null;
+            if (_cubes.Count == 0)
+                return false;
 
-            var picked = _cubes[from];
-            picked.RectTransform.DOKill();
-            picked.SetVisible(false);
-            _cubes.RemoveAt(from);
-            CollapseFrom(from, towerBase, cubesData);
-            return picked;
-        }
+            Vector2 towerCoords = ScreenToTowerCoords(screenPos);
 
-        private void CollapseFrom(int fromIndex, Vector2 towerBase, IReadOnlyList<CubeInTowerData> cubesData)
-        {
-            float cubeSize = _cubeSizeProvider.Size;
+            float topCubeX =
+                _cubes.Last().RectTransform.anchoredPosition.x;
 
-            for (int i = fromIndex; i < _cubes.Count; i++)
-            {
-                _cubes[i].Place = i;
-                float targetX = towerBase.x + cubesData[i].HorizontalOffset;
-                float targetY = cubeSize * 0.5f + i * cubeSize;
-                _animationService.PlayCollapse(_cubes[i].RectTransform, targetX, targetY);
-            }
-        }
-
-        public bool IsDropOnTower(Vector2 screenPos, Camera cam)
-        {
-            return RectTransformUtility.RectangleContainsScreenPoint(_zone, screenPos, cam);
-        }
-
-        public bool IsDropOnTopCube
-        (
-            Vector2 screenPos,
-            Camera cam,
-            int cubeCount,
-            Vector2 towerBase,
-            CubeInTowerData topCubeData,
-            float dropTolerance
-        )
-        {
-            if (_cubes.Count == 0) return false;
-
-            Vector2 towerCoords = ScreenToTowerCoords(screenPos, cam);
-            float cubeSize = _cubeSizeProvider.Size;
-            float topCubeX = GetTopCubeX(cubeCount, towerBase, topCubeData);
-            float tolerance = cubeSize * dropTolerance;
+            float tolerance =
+                _cubeSizeProvider.Size * dropTolerance;
 
             if (Mathf.Abs(towerCoords.x - topCubeX) > tolerance)
                 return false;
 
-            float newCubeCenter = cubeSize * 0.5f + cubeCount * cubeSize;
-            
+            float newCubeCenter =
+                _cubeSizeProvider.Size * 0.5f +
+                _cubes.Count * _cubeSizeProvider.Size;
+
             if (towerCoords.y < newCubeCenter)
                 return false;
 
             return true;
         }
 
-        public float GetZoneHeight() => _buildZone.rect.height;
-
-        public float GetTopCubeX(int cubeCount, Vector2 towerBase, CubeInTowerData topCubeData)
-        {
-            if (cubeCount == 0)
-                return towerBase.x;
-
-            return towerBase.x + topCubeData.HorizontalOffset;
-        }
-
-        public Vector2 ScreenToTowerCoords(Vector2 screenPos, Camera cam)
+        public Vector2 ScreenToTowerCoords(Vector2 screenPos)
         {
             RectTransformUtility.ScreenPointToLocalPointInRectangle
             (
                 _buildZone,
                 screenPos,
-                cam,
+                _camera,
                 out Vector2 localPoint
             );
-
-            Rect r = _buildZone.rect;
-            return new Vector2(localPoint.x - r.center.x, localPoint.y - r.yMin);
+            
+            return new Vector2(localPoint.x - _buildZone.rect.center.x, localPoint.y - _buildZone.rect.yMin);
         }
 
-        public TowerCubeView CreateCube(CubeInTowerData data, Vector2 towerBase, Sprite sprite, bool animate)
+        public TowerCubeView Place(float horizontalOffset, Sprite sprite, bool animate)
         {
-            float cubeSize = _cubeSizeProvider.Size;
             var instance = Instantiate(_cubePrefab, _buildZone);
-            var rt = instance.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0f);
-            rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(cubeSize, cubeSize);
-            float x = towerBase.x + data.HorizontalOffset;
-            float y = cubeSize * 0.5f + _cubes.Count * cubeSize;
-            rt.anchoredPosition = new Vector2(x, y);
-            var cubeView = instance.GetComponent<TowerCubeView>();
-            cubeView.Setup(data.Id, _cubes.Count, cubeSize, sprite);
-            _cubes.Add(cubeView);
+            instance.RectTransform.anchorMin = new Vector2(0.5f, 0f);
+            instance.RectTransform.anchorMax = new Vector2(0.5f, 0f);
+            instance.RectTransform.pivot = new Vector2(0.5f, 0.5f);
+            instance.RectTransform.sizeDelta = new Vector2(_cubeSizeProvider.Size, _cubeSizeProvider.Size);
+            float x = horizontalOffset;
+            float y = _cubeSizeProvider.Size * 0.5f + _cubes.Count * _cubeSizeProvider.Size;
+            instance.RectTransform.anchoredPosition = new Vector2(x, y);
+            instance.SetSprite(sprite);
+            _cubes.Add(instance);
 
             if (animate)
-                _animationService.PlayBounce(rt);
+                _animationService.PlayBounce(instance.RectTransform);
 
-            return cubeView;
+            return instance;
         }
 
-        public void ClearCubes()
+        public void Pick(int from)
         {
-            foreach (var view in _cubes)
+            if (from < 0 || from >= _cubes.Count) 
+                return;
+        
+            var picked = _cubes[from];
+            picked.RectTransform.DOKill();
+            picked.SetVisible(false);
+            _cubes.RemoveAt(from);
+            ResetPicked();
+            _pickedCube = picked;
+        }
+        
+        public void Collapse(int from, IReadOnlyList<float> horizontalOffsets)
+        {
+            for (int i = 0; i < horizontalOffsets.Count; i++)
             {
-                if (view == null) continue;
-                view.RectTransform.DOKill();
-                view.gameObject.SetActive(false);
-                Destroy(view.gameObject);
+                var cube = _cubes[from + i];
+                float targetX = horizontalOffsets[i];
+                float targetY = _cubeSizeProvider.Size * 0.5f + (from + i) * _cubeSizeProvider.Size;
+
+                _animationService.PlayCollapse
+                (
+                    cube.RectTransform,
+                    targetX,
+                    targetY
+                );
             }
-            _cubes.Clear();
+        }
+
+        public void ResetPicked()
+        {
+            if (_pickedCube != null)
+            {
+                _pickedCube.gameObject.SetActive(false);
+                Destroy(_pickedCube.gameObject);
+            }
         }
     }
 }

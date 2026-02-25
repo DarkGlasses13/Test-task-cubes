@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       propertyPath: m_Name
-      value: Cube from scroll
+      value: Available cube
       objectReference: {fileID: 0}
     - target: {fileID: 8930133913471894647, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       propertyPath: m_Pivot.x
@@ -98,14 +98,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3735488088459097578}
+      addedObject: {fileID: 5020402200718736282}
   m_SourcePrefab: {fileID: 100100000, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
 --- !u!1 &751987355182986381 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
   m_PrefabInstance: {fileID: 2798715034178558599}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3735488088459097578
+--- !u!114 &5020402200718736282
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -114,6 +114,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 751987355182986381}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a8943e39828b02488d7457337aa322c, type: 3}
+  m_Script: {fileID: 11500000, guid: 3558d59fb943439ba664593bd1f35abf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

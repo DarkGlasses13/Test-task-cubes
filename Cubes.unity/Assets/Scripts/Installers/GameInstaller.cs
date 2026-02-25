@@ -1,5 +1,6 @@
 using AssetProvider;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace CubeGame
@@ -44,9 +45,9 @@ namespace CubeGame
             
             Container.Bind<Canvas>().FromInstance(_canvas).AsSingle();
             Container.Bind<Camera>().FromInstance(playerCamera).AsSingle();
+            Container.Bind<DraggingCubeModel>().AsSingle();
             Container.Bind<AvailableCubesModel>().AsSingle();
             Container.Bind<TowerModel>().AsSingle();
-            Container.Bind<ITowerService>().To<TowerService>().AsSingle();
             Container.Bind<TowerView>().FromInstance(_towerView).AsSingle();
             Container.Bind<HoleView>().FromInstance(_holeView).AsSingle();
             Container.Bind<AvailableCubesView>().FromInstance(_availableCubesView).AsSingle();
@@ -56,8 +57,9 @@ namespace CubeGame
             Container.Bind<CubeAnimationService>().AsSingle();
             Container.Bind<CubeSizeProvider>().AsSingle();
             Container.Bind<CubeEffectsService>().AsSingle();
-            Container.Bind<DropResolver>().AsSingle();
-            Container.Bind<GameController>().AsSingle();
+            Container.Bind<DropCubeResolver>().AsSingle();
+            Container.BindInterfacesAndSelfTo<AvailableCubesController>().AsSingle();
+            Container.BindInterfacesAndSelfTo<TowerController>().AsSingle();
             Container.BindInterfacesAndSelfTo<GameStateMachine>().AsSingle();
             Container.Bind<LoadingState>().AsSingle();
             Container.Bind<GameplayState>().AsSingle();

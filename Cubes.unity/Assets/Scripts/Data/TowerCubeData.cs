@@ -3,10 +3,9 @@
 namespace CubeGame
 {
     [Serializable]
-    public struct CubeInTowerData
+    public struct TowerCubeData
     {
         public string Id;
-        public int Place;
         public float HorizontalOffset;
     }
 }

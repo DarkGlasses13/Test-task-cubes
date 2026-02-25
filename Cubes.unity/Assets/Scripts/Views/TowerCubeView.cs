@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,20 +19,13 @@ namespace CubeGame
         public IObservable<PointerEventData> DragStarted => _dragStarted;
         public IObservable<PointerEventData> Dragging => _dragging;
         public IObservable<PointerEventData> DragEnded => _dragEnded;
-        public string Id { get; set; }
-        public int Place { get; set; }
         public RectTransform RectTransform => _rectTransform;
-        public Sprite Sprite => _image != null ? _image.sprite : null;
 
-        public void Setup(string id, int place, float size, Sprite sprite)
+        private void Awake()
         {
-            Id = id;
-            Place = place;
-            _rectTransform ??= GetComponent<RectTransform>();
-            _rectTransform.sizeDelta = new Vector2(size, size);
-            _image ??= GetComponent<Image>();
-            _canvasGroup ??= GetComponent<CanvasGroup>();
-            _image.sprite = sprite;
+            _rectTransform = GetComponent<RectTransform>();
+            _image = GetComponent<Image>();
+            _canvasGroup = GetComponent<CanvasGroup>();
         }
 
         public void OnBeginDrag(PointerEventData eventData) => _dragStarted.OnNext(eventData);
@@ -40,6 +33,8 @@ namespace CubeGame
         public void OnDrag(PointerEventData eventData) => _dragging.OnNext(eventData);
 
         public void OnEndDrag(PointerEventData eventData) => _dragEnded.OnNext(eventData);
+        
+        public void SetSprite(Sprite sprite) => _image.sprite = sprite;
         
         public void SetVisible(bool isVisible) => _canvasGroup.alpha = isVisible ? 1 : 0;
     }

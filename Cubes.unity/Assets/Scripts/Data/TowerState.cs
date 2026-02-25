@@ -6,7 +6,7 @@ namespace CubeGame
     [Serializable]
     public class TowerState
     {
-        public List<CubeInTowerData> Cubes = new List<CubeInTowerData>();
+        public List<TowerCubeData> Cubes = new();
         public float BaseX;
         public float BaseY;
     }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UniRx;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -6,30 +6,29 @@ using UnityEngine.UI;
 
 namespace CubeGame
 {
-    [RequireComponent(typeof(Image))]
+    [RequireComponent(typeof(RectTransform), typeof(Image))]
     public class AvailableCubeView : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         private Image _image;
         private ScrollRect _scrollRect;
-        private bool _isDraggingCube;
+        private bool _isDragging;
         private readonly Subject<PointerEventData> _dragStarted = new();
         private readonly Subject<PointerEventData> _dragging = new();
         private readonly Subject<PointerEventData> _dragEnded = new();
-
-        public string Id { get; set; }
-        public Sprite Sprite => _image != null ? _image.sprite : null;
+        
+        public RectTransform RectTransform { get; private set; }
         public IObservable<PointerEventData> DragStarted => _dragStarted;
         public IObservable<PointerEventData> Dragging => _dragging;
         public IObservable<PointerEventData> DragEnded => _dragEnded;
 
-        public void Setup(string id, Sprite sprite, ScrollRect scrollRect)
+        public void Construct(ScrollRect scrollRect)
         {
-            Id = id;
+            RectTransform = GetComponent<RectTransform>();
             _image ??= GetComponent<Image>();
-            _image.sprite = sprite;
             _scrollRect = scrollRect;
         }
 
+        public void SetSprite(Sprite sprite) => _image.sprite = sprite;
 
         public void OnBeginDrag(PointerEventData eventData)
         {
@@ -39,20 +38,20 @@ namespace CubeGame
 
             if (absY > absX && delta.y > 0)
             {
-                _isDraggingCube = true;
+                _isDragging = true;
                 _scrollRect.velocity = Vector2.zero;
                 _dragStarted.OnNext(eventData);
             }
             else
             {
-                _isDraggingCube = false;
+                _isDragging = false;
                 _scrollRect.OnBeginDrag(eventData);
             }
         }
 
         public void OnDrag(PointerEventData eventData)
         {
-            if (_isDraggingCube)
+            if (_isDragging)
             {
                 _dragging.OnNext(eventData);
             }
@@ -62,7 +61,7 @@ namespace CubeGame
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            if (_isDraggingCube)
+            if (_isDragging)
             {
                 _dragEnded.OnNext(eventData);
             }

@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 243933689}
   - component: {fileID: 243933688}
   - component: {fileID: 243933687}
-  - component: {fileID: 243933686}
+  - component: {fileID: 243933690}
   m_Layer: 5
   m_Name: Cubes
   m_TagString: Untagged
@@ -163,22 +163,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &243933686
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 243933683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca9c773fd51547e49926b99c707d6b82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _scrollRect: {fileID: 243933687}
-  _content: {fileID: 365624784}
-  _availableCubePrefab: {fileID: 3735488088459097578, guid: f9dec505408f50445afd0be99c7fdc9e, type: 3}
-  _spacing: 30
 --- !u!114 &243933687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -247,6 +231,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 243933683}
   m_CullTransparentMesh: 1
+--- !u!114 &243933690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 243933683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8917b91882e94e91a929db7d8a727a59, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _content: {fileID: 365624784}
+  _availableCubePrefab: {fileID: 5020402200718736282, guid: f9dec505408f50445afd0be99c7fdc9e, type: 3}
+  _spacing: 10
 --- !u!1001 &364509924
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -353,15 +352,15 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 8954663224883491925, guid: a4ec0f2bf917805439ebf13284849fa4, type: 3}
   m_PrefabInstance: {fileID: 364509924}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &364509927 stripped
+--- !u!114 &364509926 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4774222579410572565, guid: a4ec0f2bf917805439ebf13284849fa4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2233084619129807592, guid: a4ec0f2bf917805439ebf13284849fa4, type: 3}
   m_PrefabInstance: {fileID: 364509924}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c4500c87eb627c49ae5751f4a9aba5a, type: 3}
+  m_Script: {fileID: 11500000, guid: aef0a13d5e4f45af94fd5cfe38135550, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &365624783
@@ -736,10 +735,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _canvas: {fileID: 1535782969}
-  _towerView: {fileID: 1966116254}
+  _towerView: {fileID: 1966116255}
   _holeView: {fileID: 378055803}
-  _availableCubesView: {fileID: 243933686}
-  _dragProxy: {fileID: 364509927}
+  _availableCubesView: {fileID: 243933690}
+  _dragProxy: {fileID: 364509926}
 --- !u!4 &790326134
 Transform:
   m_ObjectHideFlags: 0
@@ -1389,7 +1388,7 @@ GameObject:
   - component: {fileID: 1966116250}
   - component: {fileID: 1966116253}
   - component: {fileID: 1966116252}
-  - component: {fileID: 1966116254}
+  - component: {fileID: 1966116255}
   m_Layer: 5
   m_Name: Right
   m_TagString: Untagged
@@ -1455,7 +1454,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1966116249}
   m_CullTransparentMesh: 1
---- !u!114 &1966116254
+--- !u!114 &1966116255
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1464,12 +1463,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1966116249}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3788f1e066f40cc4688cab9d7fe74c50, type: 3}
+  m_Script: {fileID: 11500000, guid: 1c6bd1c3abed4814b54a246756d14292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _zone: {fileID: 1966116250}
   _buildZone: {fileID: 928393786}
-  _cubePrefab: {fileID: 5850890815856299421, guid: ca6bedd2c7ab6db47a92399d6750dd01, type: 3}
+  _cubePrefab: {fileID: 525497836098546573, guid: ca6bedd2c7ab6db47a92399d6750dd01, type: 3}
 --- !u!1 &2091142291
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       propertyPath: m_Name
-      value: Cube from tower
+      value: Tower cube
       objectReference: {fileID: 0}
     - target: {fileID: 8930133913471894647, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       propertyPath: m_Pivot.x
@@ -101,7 +101,7 @@ PrefabInstance:
       addedObject: {fileID: 6201976896600080764}
     - targetCorrespondingSourceObject: {fileID: 3222484950263950858, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5850890815856299421}
+      addedObject: {fileID: 525497836098546573}
   m_SourcePrefab: {fileID: 100100000, guid: cf8a7f30bd41a9e448c470fbf16e5b41, type: 3}
 --- !u!1 &7429035193765521825 stripped
 GameObject:
@@ -120,7 +120,7 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
---- !u!114 &5850890815856299421
+--- !u!114 &525497836098546573
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,6 +129,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 7429035193765521825}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1545dabb624276a4d902644b55dd8c02, type: 3}
+  m_Script: {fileID: 11500000, guid: 33067e9a52ac4a80a08be1b44adf4271, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

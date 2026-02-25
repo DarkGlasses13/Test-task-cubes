@@ -1,4 +1,5 @@
 using UnityEngine;
+using Zenject;
 
 namespace CubeGame
 {
@@ -6,12 +7,18 @@ namespace CubeGame
     public class HoleView : MonoBehaviour
     {
         private RectTransform _holeRect;
+        private Camera _camera;
 
         public RectTransform HoleRect => _holeRect;
 
-        public void Construct() => _holeRect = GetComponent<RectTransform>();
+        [Inject]
+        public void Construct(Camera cam)
+        {
+            _holeRect = GetComponent<RectTransform>();
+            _camera = cam;
+        }
 
-        public bool IsInsideHole(Vector2 screenPos, Camera cam)
+        public bool IsInsideHole(Vector2 screenPos)
         {
             if (_holeRect == null) 
                 return false;
@@ -20,7 +27,7 @@ namespace CubeGame
             (
                 _holeRect,
                 screenPos,
-                cam,
+                _camera,
                 out Vector2 localPoint
             );
 

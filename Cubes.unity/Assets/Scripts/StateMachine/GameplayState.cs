@@ -8,38 +8,34 @@ namespace CubeGame
     {
         private readonly CubeSizeProvider _cubeSizeProvider;
         private readonly IGameplayConfigProvider _gameplayConfigProvider;
-        private readonly AvailableCubesModel _availableCubesModel;
-        private readonly HoleView _holeView;
         private readonly AvailableCubesView _availableCubesView;
-        private readonly GameController _gameController;
+        private readonly AvailableCubesController _availableCubesController;
+        private readonly TowerController _towerController;
 
         public GameplayState
         (
             IGameStateSwitcher switcher,
             CubeSizeProvider cubeSizeProvider,
             IGameplayConfigProvider gameplayConfigProvider,
-            AvailableCubesModel availableCubesModel,
-            HoleView holeView,
             AvailableCubesView availableCubesView,
-            GameController gameController
+            AvailableCubesController availableCubesController,
+            TowerController towerController
             
         ) : base(switcher)
         {
             _cubeSizeProvider = cubeSizeProvider;
             _gameplayConfigProvider = gameplayConfigProvider;
-            _availableCubesModel = availableCubesModel;
-            _holeView = holeView;
             _availableCubesView = availableCubesView;
-            _gameController = gameController;
+            _availableCubesController = availableCubesController;
+            _towerController = towerController;
         }
 
         public override async UniTask Enter()
         {
-            _availableCubesModel.Populate(_gameplayConfigProvider.Get().AvailableCubes);
             Canvas.ForceUpdateCanvases();
-            _holeView.Construct();
             _cubeSizeProvider.Initialize(_availableCubesView.PanelHeight, _gameplayConfigProvider.Get().CubeSizeFillPercent);
-            _gameController.BindView();
+            _availableCubesController.Bind();
+            _towerController.Bind();
             await UniTask.CompletedTask;
         }
 

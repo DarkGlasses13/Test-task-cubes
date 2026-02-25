@@ -4,9 +4,9 @@ namespace CubeGame
 {
     public class AvailableCubesModel
     {
-        private readonly ReactiveCollection<string> _availableCubes = new();
+        private readonly ReactiveCollection<string> _cubes = new();
         
-        public IReadOnlyReactiveCollection<string> AvailableCubes => _availableCubes;
+        public IReadOnlyReactiveCollection<string> Cubes => _cubes;
 
         public void Populate(params string[] ids)
         {
@@ -16,8 +16,8 @@ namespace CubeGame
             }
         }
         
-        public void AddCube(string id) => _availableCubes.Add(id);
-        public void RemoveCube(string id) => _availableCubes.Remove(id);
-        public void Clear() => _availableCubes.Clear();
+        public void AddCube(string id) => _cubes.Add(id);
+        public void RemoveCube(string id) => _cubes.Remove(id);
+        public void Clear() => _cubes.Clear();
     }
 }
