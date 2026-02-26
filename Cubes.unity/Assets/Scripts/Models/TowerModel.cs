@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AssetProvider;
 using UniRx;
 using UnityEngine;
 
@@ -15,17 +14,6 @@ namespace CubeGame
         private readonly Subject<(int From, IReadOnlyList<TowerCubeData> Cubes)> _collapsed = new();
         private readonly Subject<Unit> _cleared = new();
 
-        #region Refactoring
-        private readonly IGameplayConfigProvider _gameplayConfigProvider;
-        private readonly CubeSizeProvider _cubeSizeProvider;
-        
-        public TowerModel(IGameplayConfigProvider gameplayConfigProvider, CubeSizeProvider cubeSizeProvider)
-        {
-            _gameplayConfigProvider = gameplayConfigProvider;
-            _cubeSizeProvider = cubeSizeProvider;
-        }
-        #endregion
-        
         public IObservable<TowerCubeData>  CubePlaced => _cubePlaced;
         public IObservable<(TowerCubeData Cube, int Place)> CubePicked => _cubePicked;
         public IObservable<(int From, IReadOnlyList<TowerCubeData> Cubes)> Collapsed => _collapsed;
@@ -50,7 +38,7 @@ namespace CubeGame
             _cubePlaced.OnNext(data);
         }
 
-        public void PickCube(int place)
+        public void PickCube(int place, float maxHorizontalOffset)
         {
             if (place < 0 || place >= Height)
                 return;
@@ -75,12 +63,8 @@ namespace CubeGame
                 float gap =
                     firstAboveOffset - belowOffset;
 
-                float maxOffset =
-                    _cubeSizeProvider.Size *
-                    _gameplayConfigProvider.Get().MaxHorizontalOffsetPercent;
-
                 float clampedGap =
-                    Mathf.Clamp(gap, -maxOffset, maxOffset);
+                    Mathf.Clamp(gap, -maxHorizontalOffset, maxHorizontalOffset);
 
                 float shift =
                     gap - clampedGap;

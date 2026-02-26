@@ -117,7 +117,11 @@ namespace CubeGame
                 sprite = _cubeSpritesProvider.Get(spriteIndex);
             }
             
-            _model.PickCube(place);
+            float maxHorizontalOffset =
+                _cubeSizeProvider.Size *
+                _gameplayConfigProvider.Get().MaxHorizontalOffsetPercent;
+
+            _model.PickCube(place, maxHorizontalOffset);
             _draggingCubeModel.StartDragging(id);
             
             _dragProxyView.BeginDrag
