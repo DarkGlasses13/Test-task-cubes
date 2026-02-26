@@ -18,8 +18,7 @@ namespace CubeGame
         }
         
         private readonly IGameplayConfigProvider  _gameplayConfigProvider;
-        private readonly ICubeConfigsProvider _cubeConfigsProvider;
-        private readonly ICubeSpritesProvider _cubeSpritesProvider;
+        private readonly ICubeSpriteResolver _cubeSpriteResolver;
         private readonly AvailableCubesModel _model;
         private readonly AvailableCubesView _view;
         private readonly DraggingCubeModel _draggingCubeModel;
@@ -31,8 +30,7 @@ namespace CubeGame
         public AvailableCubesController
         (
             IGameplayConfigProvider gameplayConfigProvider,
-            ICubeConfigsProvider cubeConfigsProvider,
-            ICubeSpritesProvider cubeSpritesProvider,
+            ICubeSpriteResolver cubeSpriteResolver,
             AvailableCubesModel model,
             AvailableCubesView view,
             DraggingCubeModel draggingCubeModel,
@@ -41,8 +39,7 @@ namespace CubeGame
         )
         {
             _gameplayConfigProvider = gameplayConfigProvider;
-            _cubeConfigsProvider = cubeConfigsProvider;
-            _cubeSpritesProvider = cubeSpritesProvider;
+            _cubeSpriteResolver = cubeSpriteResolver;
             _model = model;
             _view = view;
             _draggingCubeModel = draggingCubeModel;
@@ -75,15 +72,8 @@ namespace CubeGame
         {
             if (_bindings.Any(binding => binding.Id == id) == false)
             {
-                var cubeConfig = _cubeConfigsProvider.Get(id);
-                Sprite sprite = null;
-
-                if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
-                {
-                    sprite = _cubeSpritesProvider.Get(spriteIndex);
-                }
-
-                var view = _view.CreateCube(_cubeSpritesProvider.Get(spriteIndex));
+                Sprite sprite = _cubeSpriteResolver.Resolve(id);
+                var view = _view.CreateCube(sprite);
                     
                 Binding binding = new()
                 {
@@ -112,13 +102,7 @@ namespace CubeGame
         private void OnDragStarted(Binding binding, PointerEventData pointerEventData)
         {
             _draggingCubeModel.StartDragging(binding.Id);
-            var cubeConfig = _cubeConfigsProvider.Get(binding.Id);
-            Sprite sprite = null;
-            
-            if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
-            {
-                sprite = _cubeSpritesProvider.Get(spriteIndex);
-            }
+            Sprite sprite = _cubeSpriteResolver.Resolve(binding.Id);
             
             _dragProxyView.BeginDrag
             (

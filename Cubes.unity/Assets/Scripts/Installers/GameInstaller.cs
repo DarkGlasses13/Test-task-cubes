@@ -57,6 +57,7 @@ namespace CubeGame
             Container.Bind<CubeAnimationService>().AsSingle();
             Container.Bind<CubeSizeProvider>().AsSingle();
             Container.Bind<CubeEffectsService>().AsSingle();
+            Container.Bind<ICubeSpriteResolver>().To<CubeSpriteResolver>().AsSingle();
             Container.Bind<DropCubeResolver>().AsSingle();
             Container.BindInterfacesAndSelfTo<AvailableCubesController>().AsSingle();
             Container.BindInterfacesAndSelfTo<TowerController>().AsSingle();

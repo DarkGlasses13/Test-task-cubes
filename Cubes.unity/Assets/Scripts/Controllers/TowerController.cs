@@ -10,8 +10,7 @@ namespace CubeGame
     {
         private CompositeDisposable _disposables;
         private readonly IGameplayConfigProvider _gameplayConfigProvider;
-        private readonly ICubeConfigsProvider _cubeConfigsProvider;
-        private readonly ICubeSpritesProvider _cubeSpritesProvider;
+        private readonly ICubeSpriteResolver _cubeSpriteResolver;
         private readonly CubeSizeProvider _cubeSizeProvider;
         private readonly TowerModel _model;
         private readonly DraggingCubeModel _draggingCubeModel;
@@ -26,8 +25,7 @@ namespace CubeGame
         public TowerController
         (
             IGameplayConfigProvider gameplayConfigProvider,
-            ICubeConfigsProvider cubeConfigsProvider,
-            ICubeSpritesProvider cubeSpritesProvider,
+            ICubeSpriteResolver cubeSpriteResolver,
             CubeSizeProvider cubeSizeProvider,
             TowerModel model,
             DraggingCubeModel draggingCubeModel,
@@ -41,8 +39,7 @@ namespace CubeGame
         )
         {
             _gameplayConfigProvider = gameplayConfigProvider;
-            _cubeConfigsProvider = cubeConfigsProvider;
-            _cubeSpritesProvider = cubeSpritesProvider;
+            _cubeSpriteResolver = cubeSpriteResolver;
             _cubeSizeProvider = cubeSizeProvider;
             _model = model;
             _draggingCubeModel = draggingCubeModel;
@@ -83,15 +80,7 @@ namespace CubeGame
 
         private void BindCube(TowerCubeData data, bool animate)
         {
-            var cubeConfig = _cubeConfigsProvider.Get(data.Id);
-            Sprite sprite = null;
-
-            if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
-            {
-                sprite = _cubeSpritesProvider.Get(spriteIndex);
-            }
-
-            var placedView = _view.Place(data.HorizontalOffset, sprite, animate);
+            var placedView = _view.Place(data.HorizontalOffset, _cubeSpriteResolver.Resolve(data.Id), animate);
                 
             placedView.DragStarted
                 .Subscribe(pointerEventData =>
@@ -109,13 +98,7 @@ namespace CubeGame
 
         private void OnDragStarted(string id, int place, PointerEventData pointerEventData)
         {
-            var cubeConfig = _cubeConfigsProvider.Get(id);
-            Sprite sprite = null;
-        
-            if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
-            {
-                sprite = _cubeSpritesProvider.Get(spriteIndex);
-            }
+            Sprite sprite = _cubeSpriteResolver.Resolve(id);
             
             float maxHorizontalOffset =
                 _cubeSizeProvider.Size *
@@ -136,13 +119,7 @@ namespace CubeGame
 
         private void OnDrop(string id)
         {
-            var cubeConfig = _cubeConfigsProvider.Get(id);
-            Sprite sprite = null;
-            
-            if (int.TryParse(cubeConfig.SpriteKey, out var spriteIndex))
-            {
-                sprite = _cubeSpritesProvider.Get(spriteIndex);
-            }
+            Sprite sprite = _cubeSpriteResolver.Resolve(id);
             
             var result = _dropResolver.Resolve(_dragProxyView.ScreenPosition, checkHole: true);
             _view.ResetPicked();
