@@ -50,8 +50,7 @@ namespace CubeGame
             _cubePlaced.OnNext(data);
         }
 
-        public void PickCube(int place) //TODO: нужно убрать из модели horizontal offset в таком виде, пусть будет просто от -1 до 1
-                                        //(в случае первого тоже, просто view будет смотреть на ширину области и поймёт где должен находиться куб)
+        public void PickCube(int place)
         {
             if (place < 0 || place >= Height)
                 return;
